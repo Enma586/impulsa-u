@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Res } from '@nestjs/common';
 import type { SaludListo, SaludVivo } from '@impulsau/contracts';
 import type { FastifyReply } from 'fastify';
+import { Publica } from './publica.js';
 
 export interface ComprobadorListo {
   nombre: string;
@@ -10,6 +11,7 @@ export interface ComprobadorListo {
 /** Cada dependencia (base de datos, Redis…) registra su comprobador con este token. */
 export const COMPROBADORES_LISTO = Symbol('COMPROBADORES_LISTO');
 
+@Publica()
 @Controller('salud')
 export class SaludController {
   constructor(

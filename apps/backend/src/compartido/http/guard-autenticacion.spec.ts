@@ -117,6 +117,12 @@ describe('GuardAutenticacion', () => {
     expect(respuesta.json()).toEqual(activo);
   });
 
+  it('las rutas de salud no piden token (las consulta la plataforma de despliegue)', async () => {
+    const servidor = await crearApp(null);
+    expect((await pedir(servidor, '/salud')).statusCode).toBe(200);
+    expect((await pedir(servidor, '/salud/listo')).statusCode).toBe(200);
+  });
+
   it('una ruta marcada como pública no pide token', async () => {
     const respuesta = await pedir(await crearApp(null), '/privada/abierta');
     expect(respuesta.statusCode).toBe(200);
