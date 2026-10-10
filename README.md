@@ -21,6 +21,7 @@ Almacenamiento y autenticación se toman de Supabase dev; no se replican en loca
 | Comando             | Qué hace                                                    |
 | ------------------- | ----------------------------------------------------------- |
 | `pnpm typecheck`    | `tsc --noEmit` en todo el monorepo                          |
+| `pnpm test`         | Pruebas (Vitest)                                            |
 | `pnpm lint`         | ESLint (cero `any`, sin `className` fuera de `packages/ui`) |
 | `pnpm arquitectura` | dependency-cruiser: reglas hexagonales                      |
 | `pnpm formato`      | Prettier                                                    |
