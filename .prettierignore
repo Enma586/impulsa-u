@@ -2,3 +2,4 @@ docs/
 pnpm-lock.yaml
 dist/
 .turbo/
+packages/db/migraciones/
