@@ -33,7 +33,11 @@ importers:
         specifier: 8.71.1
         version: 8.71.1(eslint@10.12.0)(typescript@6.0.3)
 
-  apps/ai: {}
+  apps/ai:
+    devDependencies:
+      '@types/node':
+        specifier: 24.19.2
+        version: 24.19.2
 
   apps/backend:
     dependencies:
