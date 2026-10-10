@@ -14,7 +14,7 @@ cp apps/backend/.env.example apps/backend/.env   # 4. variables (completar valor
 pnpm verificar                                   # 5. tipos, lint, arquitectura y formato
 ```
 
-Almacenamiento y autenticación se toman de Supabase dev; no se replican en local.
+Almacenamiento y autenticación se toman de Supabase dev; no se replican en local. Las pruebas del backend usan el Redis de Docker (`REDIS_URL`, por defecto `redis://localhost:6379`): levántalo con `pnpm infra:arriba` antes de `pnpm test`.
 
 ## Comandos
 
