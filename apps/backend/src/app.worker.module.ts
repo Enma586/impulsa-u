@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfiguracionModule } from './compartido/infraestructura/configuracion.module.js';
+import { ConexionBaseDatosModule } from './compartido/infraestructura/conexion-base-datos.module.js';
+import { ConexionRedisModule } from './compartido/infraestructura/conexion-redis.module.js';
 import { RegistroModule } from './compartido/infraestructura/logger.module.js';
 
-@Module({ imports: [ConfiguracionModule, RegistroModule] })
+@Module({
+  imports: [ConfiguracionModule, RegistroModule, ConexionBaseDatosModule, ConexionRedisModule],
+})
 export class AppWorkerModule {}
