@@ -24,4 +24,4 @@ export const usuarios = pgTable(
       sql`${tabla.rol} <> 'talento' OR ${tabla.fechaNacimiento} IS NOT NULL`,
     ),
   ],
-);
+).enableRLS();
