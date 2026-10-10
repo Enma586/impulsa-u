@@ -4,6 +4,8 @@ export const CodigosErrorComunes = [
   'validacion',
   'no_autenticado',
   'prohibido',
+  'cuenta_suspendida',
+  'perfil_incompleto',
   'no_encontrado',
   'conflicto',
   'demasiadas_peticiones',
