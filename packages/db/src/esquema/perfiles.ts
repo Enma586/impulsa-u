@@ -63,4 +63,4 @@ export const talentos = pgTable(
       .on(tabla.carreraId, tabla.estadoAcademico, tabla.departamento)
       .where(sql`${tabla.primerEmpleoEn} IS NULL`),
   ],
-);
+).enableRLS();
