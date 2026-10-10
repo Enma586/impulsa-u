@@ -26,3 +26,5 @@ Almacenamiento y autenticación se toman de Supabase dev; no se replican en loca
 | `pnpm formato`      | Prettier                                                    |
 | `pnpm verificar`    | Todo lo anterior                                            |
 | `pnpm infra:abajo`  | Detiene PostgreSQL y Redis                                  |
+
+La integración continua corre `pnpm verificar` en cada PR.
