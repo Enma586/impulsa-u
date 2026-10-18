@@ -25,5 +25,24 @@ services:
       timeout: 3s
       retries: 10
 
+  backend:
+    profiles: ['app']
+    build:
+      context: ..
+      dockerfile: apps/backend/Dockerfile
+    env_file:
+      - ../apps/backend/.env
+    environment:
+      PORT: '3000'
+      DATABASE_URL: postgres://impulsau:impulsau@postgres:5432/impulsau
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres-datos:
