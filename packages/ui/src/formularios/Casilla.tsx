@@ -14,7 +14,7 @@ export function Casilla({
   children: ReactNode;
   seleccionada?: boolean;
   name?: string;
-  error?: string;
+  error?: string | undefined;
   deshabilitado?: boolean;
   onChange?: (seleccionada: boolean) => void;
 }) {

@@ -15,7 +15,7 @@ interface PropsCampo {
   autoComplete?: string;
   ayuda?: string;
   /** Mensaje de error; si existe, el campo queda marcado como inválido. */
-  error?: string;
+  error?: string | undefined;
   requerido?: boolean;
   deshabilitado?: boolean;
   onChange?: (valor: string) => void;

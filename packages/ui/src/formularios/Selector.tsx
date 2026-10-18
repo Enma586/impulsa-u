@@ -35,7 +35,7 @@ export function Selector({
   name?: string;
   placeholder?: string;
   ayuda?: string;
-  error?: string;
+  error?: string | undefined;
   requerido?: boolean;
   deshabilitado?: boolean;
   onChange?: (valor: string) => void;
