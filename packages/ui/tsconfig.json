@@ -1,8 +1,7 @@
 {
   "extends": "../../packages/config/tsconfig.frontend.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist"
+    "types": ["vite/client"]
   },
-  "include": ["src"]
+  "include": ["src", "*.ts"]
 }
