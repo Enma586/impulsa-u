@@ -19,7 +19,7 @@ COPY packages/contracts packages/contracts
 COPY packages/db packages/db
 COPY apps/backend apps/backend
 RUN pnpm --filter @impulsau/contracts --filter @impulsau/db --filter @impulsau/backend build
-RUN pnpm --filter @impulsau/backend deploy --prod /out
+RUN pnpm --filter @impulsau/backend deploy --legacy --prod /out
 
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
