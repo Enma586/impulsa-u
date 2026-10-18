@@ -141,6 +141,7 @@ Cuando exista el `Dockerfile` del backend:
 4. **Health check path:** `/salud`.
 5. **Auto-deploy desactivado**: solo despliega `promover-prod.yml` mediante el *deploy hook*.
 6. Variables de entorno de producción (sección "Render y Koyeb" de la guía de variables).
+   Incluye `TRUST_PROXY=1` (un proxy delante): sin él, el límite de tasa vería la IP del proxy de Render para todos los clientes.
 7. *Settings → Custom Domains*: `api.impulsau.[tld]` y su registro en el DNS.
 8. Copiar el **Deploy Hook URL** a GitHub (`production`).
 
@@ -148,7 +149,7 @@ Cuando exista el `Dockerfile` del backend:
 
 Cuando exista el `Dockerfile` del backend:
 
-1. Servicio `impulsau-api-dev`: imagen de GHCR con la etiqueta de `develop`, salida `main-todo`, health check `/salud`, variables de dev, dominio `api-dev.impulsau.[tld]`.
+1. Servicio `impulsau-api-dev`: imagen de GHCR con la etiqueta de `develop`, salida `main-todo`, health check `/salud`, variables de dev, dominio `api-dev.impulsau.[tld]`. Con `TRUST_PROXY=1`, igual que en el servicio de preview.
 2. Servicio `impulsau-api-preview`: igual, con variables de preview y dominio `api-preview.impulsau.[tld]`. Su `DATABASE_URL` la actualiza el workflow `preview-backend.yml` en cada PR.
 3. Crear un token de API para los workflows.
 
