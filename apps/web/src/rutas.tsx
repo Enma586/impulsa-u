@@ -1,5 +1,6 @@
 import { Contenedor, Pila } from '@impulsau/ui';
 import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router';
+import { Galeria } from './galeria';
 
 const raiz = createRootRoute({ component: Outlet });
 
@@ -18,7 +19,13 @@ const inicio = createRoute({
   },
 });
 
-export const router = createRouter({ routeTree: raiz.addChildren([inicio]) });
+const componentes = createRoute({
+  getParentRoute: () => raiz,
+  path: '/componentes',
+  component: Galeria,
+});
+
+export const router = createRouter({ routeTree: raiz.addChildren([inicio, componentes]) });
 
 declare module '@tanstack/react-router' {
   interface Register {
