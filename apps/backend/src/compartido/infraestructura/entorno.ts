@@ -4,6 +4,7 @@ const Entorno = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
   PORT: z.coerce.number().int().positive(),
   CORS_ORIGIN: z.url(),
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DATABASE_URL: z.url(),
   DATABASE_URL_MIGRACIONES: z.url(),
   MIGRAR_AL_INICIAR: z.enum(['true', 'false']).transform((valor) => valor === 'true'),
