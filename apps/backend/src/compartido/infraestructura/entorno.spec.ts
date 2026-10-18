@@ -23,6 +23,11 @@ describe('leerEntorno', () => {
     expect(entorno.MIGRAR_AL_INICIAR).toBe(false);
   });
 
+  it('TRUST_PROXY es 0 si no se define y acepta el número de proxies', () => {
+    expect(leerEntorno(valido).TRUST_PROXY).toBe(0);
+    expect(leerEntorno({ ...valido, TRUST_PROXY: '1' }).TRUST_PROXY).toBe(1);
+  });
+
   it('rechaza variables inválidas y nombra los campos sin mostrar valores', () => {
     const intento = () => leerEntorno({ ...valido, PORT: 'abc', AI_SERVICE_TOKEN: 'corto' });
     expect(intento).toThrow('PORT, AI_SERVICE_TOKEN');
