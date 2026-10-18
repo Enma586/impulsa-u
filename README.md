@@ -35,12 +35,13 @@ En producción, `TRUST_PROXY=1` (un proxy delante); en local se deja en `0`.
 
 ## Comandos
 
-| Comando             | Qué hace                                                    |
-| ------------------- | ----------------------------------------------------------- |
-| `pnpm typecheck`    | `tsc --noEmit` en todo el monorepo                          |
-| `pnpm test`         | Pruebas (Vitest)                                            |
-| `pnpm lint`         | ESLint (cero `any`, sin `className` fuera de `packages/ui`) |
-| `pnpm arquitectura` | dependency-cruiser: reglas hexagonales                      |
-| `pnpm formato`      | Prettier                                                    |
-| `pnpm verificar`    | Todo lo anterior                                            |
-| `pnpm infra:abajo`  | Detiene PostgreSQL y Redis                                  |
+| Comando                      | Qué hace                                                                                                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`             | `tsc --noEmit` en todo el monorepo                                                                                                                                    |
+| `pnpm test`                  | Pruebas (Vitest)                                                                                                                                                      |
+| `pnpm lint`                  | ESLint (cero `any`, sin `className` fuera de `packages/ui`)                                                                                                           |
+| `pnpm arquitectura`          | dependency-cruiser: reglas hexagonales                                                                                                                                |
+| `pnpm verificar-migraciones` | Migraciones: sin esquema pendiente, consistentes, inmutables, sin operaciones destructivas y aplicables desde cero (necesita Postgres del compose y `origin/develop`) |
+| `pnpm formato`               | Prettier                                                                                                                                                              |
+| `pnpm verificar`             | Todo lo anterior                                                                                                                                                      |
+| `pnpm infra:abajo`           | Detiene PostgreSQL y Redis                                                                                                                                            |

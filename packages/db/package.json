@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "generar": "drizzle-kit generate",
-    "migrar": "pnpm build && node --env-file=../../apps/backend/.env dist/migrar-cli.js"
+    "migrar": "pnpm build && node --env-file=../../apps/backend/.env dist/migrar-cli.js",
+    "test": "vitest run",
+    "verificar-migraciones": "pnpm build && node dist/verificacion/verificar-migraciones.js"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",
@@ -15,7 +17,8 @@
   },
   "devDependencies": {
     "@types/node": "24.19.2",
-    "drizzle-kit": "0.31.11"
+    "drizzle-kit": "0.31.11",
+    "vitest": "5.0.3"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
