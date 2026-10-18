@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "arquitectura": "depcruise apps packages --config .dependency-cruiser.cjs",
     "formato": "prettier --check .",
-    "verificar": "pnpm build && pnpm typecheck && pnpm lint && pnpm arquitectura && pnpm test && pnpm formato",
+    "verificar-migraciones": "pnpm --filter @impulsau/db verificar-migraciones",
+    "verificar": "pnpm build && pnpm typecheck && pnpm lint && pnpm arquitectura && pnpm verificar-migraciones && pnpm test && pnpm formato",
     "infra:arriba": "docker compose -f infra/docker-compose.yml up -d",
     "infra:abajo": "docker compose -f infra/docker-compose.yml down",
     "prepare": "husky"
