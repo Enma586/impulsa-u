@@ -9,6 +9,7 @@ export const lista = style({
   display: 'flex',
   gap: '20px',
   overflowX: 'auto',
+  overflowY: 'hidden',
   borderBottom: `1px solid ${tema.color.borde}`,
 });
 
@@ -16,7 +17,6 @@ export const pestana = style({
   display: 'flex',
   alignItems: 'center',
   minHeight: areaTactilMinima,
-  marginBottom: '-1px',
   borderBottom: '2px solid transparent',
   color: tema.color.textoSecundario,
   fontFamily: tema.fuente.datos,
