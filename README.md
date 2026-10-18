@@ -14,15 +14,34 @@ cp apps/backend/.env.example apps/backend/.env   # 4. variables (completar valor
 pnpm verificar                                   # 5. tipos, lint, arquitectura y formato
 ```
 
-Almacenamiento y autenticación se toman de Supabase dev; no se replican en local.
+Almacenamiento y autenticación se toman de Supabase dev; no se replican en local. Las pruebas del backend usan el Redis de Docker (`REDIS_URL`, por defecto `redis://localhost:6379`): levántalo con `pnpm infra:arriba` antes de `pnpm test`.
+
+## Correr la app en local
+
+Con el entorno levantado (sección anterior) y `apps/backend/.env` completo:
+
+```bash
+pnpm --filter @impulsau/backend dev    # API en http://localhost:3000 (/salud, /salud/listo)
+pnpm --filter @impulsau/web dev        # frontend en http://localhost:5173
+```
+
+`CORS_ORIGIN` en el `.env` del backend debe ser `http://localhost:5173`. Para probar la imagen del backend como en producción:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile app up --build   # backend en http://localhost:3000
+```
+
+En producción, `TRUST_PROXY=1` (un proxy delante); en local se deja en `0`.
 
 ## Comandos
 
-| Comando             | Qué hace                                                    |
-| ------------------- | ----------------------------------------------------------- |
-| `pnpm typecheck`    | `tsc --noEmit` en todo el monorepo                          |
-| `pnpm lint`         | ESLint (cero `any`, sin `className` fuera de `packages/ui`) |
-| `pnpm arquitectura` | dependency-cruiser: reglas hexagonales                      |
-| `pnpm formato`      | Prettier                                                    |
-| `pnpm verificar`    | Todo lo anterior                                            |
-| `pnpm infra:abajo`  | Detiene PostgreSQL y Redis                                  |
+| Comando                      | Qué hace                                                                                                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`             | `tsc --noEmit` en todo el monorepo                                                                                                                                    |
+| `pnpm test`                  | Pruebas (Vitest)                                                                                                                                                      |
+| `pnpm lint`                  | ESLint (cero `any`, sin `className` fuera de `packages/ui`)                                                                                                           |
+| `pnpm arquitectura`          | dependency-cruiser: reglas hexagonales                                                                                                                                |
+| `pnpm verificar-migraciones` | Migraciones: sin esquema pendiente, consistentes, inmutables, sin operaciones destructivas y aplicables desde cero (necesita Postgres del compose y `origin/develop`) |
+| `pnpm formato`               | Prettier                                                                                                                                                              |
+| `pnpm verificar`             | Todo lo anterior                                                                                                                                                      |
+| `pnpm infra:abajo`           | Detiene PostgreSQL y Redis                                                                                                                                            |

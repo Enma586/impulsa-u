@@ -27,6 +27,7 @@ export function crearConfig(raiz) {
         '@typescript-eslint/no-non-null-assertion': 'error',
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
         '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
         'no-restricted-syntax': ['error', sinClassNameNiStyle],
       },
     },

@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [develop, main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,8 +17,37 @@ jobs:
     name: CI
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      postgres:
+        image: pgvector/pgvector:0.8.0-pg17
+        env:
+          POSTGRES_USER: impulsau
+          POSTGRES_PASSWORD: impulsau
+          POSTGRES_DB: impulsau
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U impulsau"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      REDIS_URL: redis://localhost:6379
+      BASE_REF: origin/${{ github.base_ref }}
+      MIGRACION_DESTRUCTIVA_APROBADA: ${{ contains(github.event.pull_request.labels.*.name, 'migracion-destructiva') }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
