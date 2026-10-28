@@ -167,3 +167,48 @@ export const segmento = style({
     '&[data-focus-visible]': anilloFoco,
   },
 });
+
+export const areaTexto = style({
+  boxSizing: 'border-box',
+  width: '100%',
+  minHeight: '120px',
+  padding: '12px 14px',
+  border: `1px solid ${tema.color.borde}`,
+  borderRadius: radios.control,
+  backgroundColor: tema.color.superficie,
+  color: tema.color.texto,
+  fontFamily: 'inherit',
+  fontSize: tamanosTexto[15],
+  lineHeight: 1.5,
+  resize: 'vertical',
+  outline: 'none',
+  selectors: {
+    '&[data-focused]': { borderColor: tema.color.foco },
+    '&[data-invalid]': { borderColor: tema.color.error.texto },
+  },
+});
+
+export const fichas = style({ display: 'flex', flexWrap: 'wrap', gap: '8px' });
+
+export const ficha = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  minHeight: areaTactilMinima,
+  padding: '0 14px',
+  border: `1px solid ${tema.color.borde}`,
+  borderRadius: radios.circulo,
+  backgroundColor: tema.color.superficie,
+  color: tema.color.texto,
+  fontFamily: 'inherit',
+  fontSize: tamanosTexto[14],
+  cursor: 'pointer',
+  selectors: {
+    '&[data-focus-visible]': anilloFoco,
+    '&[data-selected]': {
+      backgroundColor: tema.color.logro.fondo,
+      color: tema.color.logro.texto,
+      borderColor: tema.color.logro.texto,
+    },
+  },
+});
