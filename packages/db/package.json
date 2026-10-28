@@ -7,6 +7,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "generar": "drizzle-kit generate",
+    "sembrar": "pnpm build && node --env-file=../../apps/backend/.env dist/sembrar-cli.js",
     "migrar": "pnpm build && node --env-file=../../apps/backend/.env dist/migrar-cli.js",
     "test": "vitest run",
     "verificar-migraciones": "pnpm build && node dist/verificacion/verificar-migraciones.js"

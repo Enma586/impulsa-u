@@ -49,3 +49,21 @@ export const tamanoAvatar = styleVariants({
 });
 
 export const imagenAvatar = style({ width: '100%', height: '100%', objectFit: 'cover' });
+
+export const marcoImagen = style({
+  overflow: 'hidden',
+  borderRadius: radios.control,
+  backgroundColor: tema.color.superficieElevada,
+});
+
+export const proporcion = styleVariants({
+  panoramica: { aspectRatio: '16 / 9' },
+  cuadrada: { aspectRatio: '1 / 1' },
+});
+
+export const imagen = style({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+});
