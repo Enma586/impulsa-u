@@ -25,9 +25,18 @@ export const grilla = style({ display: 'grid' });
 
 export const columnas = styleVariants({
   1: { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' },
-  2: { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' },
-  3: { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' },
-  4: { gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' },
+  2: {
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    '@media': { '(max-width: 639px)': { gridTemplateColumns: 'minmax(0, 1fr)' } },
+  },
+  3: {
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    '@media': { '(max-width: 639px)': { gridTemplateColumns: 'minmax(0, 1fr)' } },
+  },
+  4: {
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    '@media': { '(max-width: 639px)': { gridTemplateColumns: 'minmax(0, 1fr)' } },
+  },
 });
 
 export const contenedor = style({
