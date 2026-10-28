@@ -51,6 +51,9 @@ const identidad: ProveedorIdentidad = {
     cuentasEliminadas.push(id);
     return Promise.resolve();
   },
+  iniciarSesion: () => Promise.reject(new Error('no se usa en este caso de uso')),
+  renovarSesion: () => Promise.reject(new Error('no se usa en este caso de uso')),
+  cerrarSesion: () => Promise.reject(new Error('no se usa en este caso de uso')),
 };
 
 const usuarios: RepositorioUsuarios = {
@@ -60,7 +63,10 @@ const usuarios: RepositorioUsuarios = {
       ? Promise.reject(respuestaRepositorio)
       : Promise.resolve(respuestaRepositorio);
   },
+  crearEmpresa: () => Promise.reject(new Error('no se usa en este caso de uso')),
   buscarPorId: () => Promise.resolve(null),
+  resumenSesion: () => Promise.resolve(null),
+  activar: () => Promise.resolve(),
 };
 
 const limitador: LimitadorTasa = {
