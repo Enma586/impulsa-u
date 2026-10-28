@@ -1,0 +1,45 @@
+# Backend en Render con la imagen del repositorio (docs/impulsau-guia-plataformas.md).
+# Los valores marcados `sync: false` se cargan en el panel: nunca van en git.
+services:
+  - type: web
+    name: impulsau-backend
+    runtime: docker
+    dockerfilePath: apps/backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /salud
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: TRUST_PROXY
+        value: 1
+      - key: MIGRAR_AL_INICIAR
+        value: true
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: impulsau-redis
+          property: connectionString
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_MIGRACIONES
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: AI_SERVICE_TOKEN
+        sync: false
+
+  - type: keyvalue
+    name: impulsau-redis
+    plan: free
+    ipAllowList: []

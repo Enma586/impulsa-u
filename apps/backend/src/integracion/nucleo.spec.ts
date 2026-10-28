@@ -20,6 +20,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppHttpModule } from '../app.http.module.js';
 import { VERIFICADOR_TOKEN } from '../compartido/dominio/autenticacion.js';
 import { fallo, ok } from '../compartido/dominio/resultado.js';
+import { EMPRESA_DEMO, TALENTOS_DEMO } from '../demo/historia.js';
+import { sembrarHistoria } from '../demo/sembrar-demo.js';
 import { ALMACEN_ARCHIVOS } from '../modulos/archivos/puertos/puertos.js';
 
 /**
@@ -604,5 +606,58 @@ describe('catálogos iniciales', () => {
     expect(primera.carreras.length).toBeGreaterThan(0);
     expect(primera.instituciones.length).toBeGreaterThan(0);
     expect(segunda.habilidades).toHaveLength(primera.habilidades.length);
+  });
+});
+
+describe('historia de la demo (T-21)', () => {
+  const crearCuenta = async (): Promise<string> => {
+    const id = randomUUID();
+    await base.sql`INSERT INTO auth.users (id) VALUES (${id})`;
+    return id;
+  };
+
+  async function idPorCorreo(correo: string): Promise<string> {
+    const [fila] = await base.sql<
+      { id: string }[]
+    >`SELECT id FROM usuarios WHERE correo = ${correo}`;
+    if (!fila) throw new Error(`No existe ${correo}`);
+    return fila.id;
+  }
+
+  it('carga una historia coherente y repetirla no cambia nada', async () => {
+    expect(await sembrarHistoria(base.db, crearCuenta)).toBe('sembrada');
+    expect(await sembrarHistoria(base.db, crearCuenta)).toBe('ya_sembrada');
+
+    const [ana] = TALENTOS_DEMO;
+    const idAna = await idPorCorreo(ana?.correo ?? '');
+    const idEmpresa = await idPorCorreo(EMPRESA_DEMO.correo);
+
+    const perfil = leer(
+      await como(idAna, 'GET', `/perfiles/talentos/${idAna}`),
+      perfiles.PerfilTalento,
+    );
+    expect(perfil.proyectos).toHaveLength(2);
+    const react = perfil.habilidades.find((habilidad) => habilidad.nombre === 'React');
+    expect(react?.proyectos).toBe(1);
+    const node = perfil.habilidades.find((habilidad) => habilidad.nombre === 'Node.js');
+    expect(node?.proyectos).toBe(2);
+
+    const feed = leer(
+      await como(idAna, 'GET', '/proyectos?limite=20'),
+      contratoProyectos.PaginaProyectos,
+    );
+    expect(feed.items.length).toBeGreaterThanOrEqual(4);
+
+    const vacantesEmpresa = leer(
+      await como(idEmpresa, 'GET', '/vacantes?mias=true'),
+      contratoVacantes.PaginaVacantes,
+    );
+    expect(vacantesEmpresa.items).toHaveLength(3);
+    const abierta = vacantesEmpresa.items.find((vacante) => vacante.estado === 'abierta');
+    const recibidas = leer(
+      await como(idEmpresa, 'GET', `/vacantes/${abierta?.id ?? ''}/postulaciones`),
+      z.array(contratoVacantes.PostulacionRecibida),
+    );
+    expect(recibidas.length).toBeGreaterThanOrEqual(1);
   });
 });

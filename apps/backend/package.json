@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "nest build",
+    "demo": "pnpm build && node --env-file=.env dist/main-demo.js",
     "dev": "nest start --watch --entryFile main-todo --env-file .env",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
