@@ -14,9 +14,14 @@ export function leerCambios(salida: string): CambioArchivo[] {
     });
 }
 
-/** Una migración que ya existe en la rama base solo puede quedar igual: no se edita, borra ni renombra. */
+/**
+ * Una migración que ya existe en la rama base solo puede quedar igual: no se edita, borra ni renombra.
+ * El diario `_journal.json` se exceptúa: drizzle-kit le agrega una entrada con cada migración nueva.
+ */
 export function migracionesModificadas(cambios: CambioArchivo[]): string[] {
-  return cambios.filter((cambio) => cambio.estado !== 'A').map((cambio) => cambio.ruta);
+  return cambios
+    .filter((cambio) => cambio.estado !== 'A' && !cambio.ruta.endsWith('/meta/_journal.json'))
+    .map((cambio) => cambio.ruta);
 }
 
 export function migracionesNuevas(cambios: CambioArchivo[]): string[] {
