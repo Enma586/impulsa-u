@@ -1,5 +1,6 @@
 export * from './esquema/index.js';
 export * from './cliente.js';
+export { sembrarCatalogos } from './catalogos-iniciales.js';
 export {
   and,
   asc,

@@ -13,7 +13,7 @@ import {
   vacantes as contratoVacantes,
   archivos as contratoArchivos,
 } from '@impulsau/contracts';
-import { crearBaseDeDatos } from '@impulsau/db';
+import { crearBaseDeDatos, sembrarCatalogos } from '@impulsau/db';
 import { z } from 'zod';
 import type { ConexionBaseDeDatos } from '@impulsau/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -590,5 +590,19 @@ describe('vacantes y postulaciones', () => {
       proyectoIds: [randomUUID()],
     });
     expect(postular.statusCode).toBe(409);
+  });
+});
+
+describe('catálogos iniciales', () => {
+  it('se cargan completos y repetirlos no duplica nada', async () => {
+    await sembrarCatalogos(base.db);
+    const primera = leer(await como(talentoA, 'GET', '/catalogos'), catalogos.Catalogos);
+    await sembrarCatalogos(base.db);
+    const segunda = leer(await como(talentoA, 'GET', '/catalogos'), catalogos.Catalogos);
+
+    expect(primera.habilidades.length).toBeGreaterThan(20);
+    expect(primera.carreras.length).toBeGreaterThan(0);
+    expect(primera.instituciones.length).toBeGreaterThan(0);
+    expect(segunda.habilidades).toHaveLength(primera.habilidades.length);
   });
 });
