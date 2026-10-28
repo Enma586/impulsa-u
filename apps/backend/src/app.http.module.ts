@@ -3,7 +3,10 @@ import { APP_GUARD } from '@nestjs/core';
 import { ArchivosModule } from './modulos/archivos/index.js';
 import { AuthHttpModule, AuthModule } from './modulos/auth/index.js';
 import { CatalogosModule } from './modulos/catalogos/index.js';
+import { InteraccionesModule } from './modulos/interacciones/index.js';
 import { PerfilesModule } from './modulos/perfiles/index.js';
+import { ProyectosModule } from './modulos/proyectos/index.js';
+import { VacantesModule } from './modulos/vacantes/index.js';
 import { AutenticacionModule } from './compartido/http/autenticacion.module.js';
 import { CompartidoHttpModule } from './compartido/http/compartido-http.module.js';
 import { GuardAutenticacion } from './compartido/http/guard-autenticacion.js';
@@ -26,6 +29,9 @@ import { RegistroModule } from './compartido/infraestructura/logger.module.js';
     CatalogosModule,
     PerfilesModule,
     ArchivosModule,
+    ProyectosModule,
+    InteraccionesModule,
+    VacantesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: LimiteTasaGuard },
