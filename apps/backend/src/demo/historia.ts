@@ -28,6 +28,8 @@ export interface ProyectoDemo {
 }
 
 export interface VacanteDemo {
+  /** Correo de la empresa que la publica; si falta, la primera de la historia. */
+  empresa?: string;
   titulo: string;
   descripcion: string;
   tipo: 'pasantia' | 'primer_empleo' | 'trainee';
@@ -42,7 +44,26 @@ export interface PostulacionDemo {
   vacante: string;
   talento: string;
   proyectos: string[];
-  estado: 'recibida' | 'en_revision' | 'entrevista';
+  estado: 'recibida' | 'en_revision' | 'entrevista' | 'seleccionada' | 'descartada';
+  /** Obligatorio cuando la postulación está descartada. */
+  motivoDescarte?: 'falta_habilidad_tecnica' | 'perfil_incompleto' | 'otro_candidato';
+}
+
+export interface EmpresaDemo {
+  correo: string;
+  nombreComercial: string;
+  sector: string;
+  sitioWeb: string;
+  descripcion: string;
+}
+
+/** Un conjunto completo de datos de demostración. */
+export interface HistoriaDemo {
+  empresas: readonly EmpresaDemo[];
+  talentos: readonly TalentoDemo[];
+  proyectos: readonly ProyectoDemo[];
+  vacantes: readonly VacanteDemo[];
+  postulaciones: readonly PostulacionDemo[];
 }
 
 export const EMPRESA_DEMO = {
@@ -193,3 +214,11 @@ export const POSTULACIONES_DEMO: readonly PostulacionDemo[] = [
     estado: 'recibida',
   },
 ];
+
+export const HISTORIA_BASICA: HistoriaDemo = {
+  empresas: [EMPRESA_DEMO],
+  talentos: TALENTOS_DEMO,
+  proyectos: PROYECTOS_DEMO,
+  vacantes: VACANTES_DEMO,
+  postulaciones: POSTULACIONES_DEMO,
+};

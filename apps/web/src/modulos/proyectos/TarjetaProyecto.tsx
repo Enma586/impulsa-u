@@ -43,7 +43,7 @@ export function BotonLike({
   return (
     <BotonAlternar
       seleccionado={estado.meGusta}
-      etiqueta={estado.meGusta ? 'Quitar me gusta' : 'Dar me gusta'}
+      etiqueta={`${estado.meGusta ? 'Quitar me gusta' : 'Dar me gusta'}, ${String(estado.likes)}`}
       deshabilitado={enCurso}
       onCambio={(quiere) => void cambiar(quiere)}
     >
@@ -67,7 +67,7 @@ export function TarjetaProyecto({ proyecto }: { proyecto: proyectos.ProyectoResu
             {proyecto.publicadoEn && ` · ${fechaLegible(proyecto.publicadoEn)}`}
           </Dato>
         </Fila>
-        <Titulo nivel={3}>
+        <Titulo nivel={2}>
           <Enlace href={`/proyectos/${proyecto.id}`}>{proyecto.titulo}</Enlace>
         </Titulo>
         <Texto color="secundario">{proyecto.extracto}</Texto>

@@ -27,6 +27,26 @@ const HABILIDADES: readonly (readonly [string, string])[] = [
   ['Marketing digital', 'Negocios'],
   ['Trabajo en equipo', 'Transversales'],
   ['Comunicación', 'Transversales'],
+  ['Next.js', 'Frontend'],
+  ['Spring Boot', 'Backend'],
+  ['PHP', 'Lenguajes'],
+  ['Flutter', 'Móvil'],
+  ['Kotlin', 'Móvil'],
+  ['Power BI', 'Datos'],
+  ['Machine learning', 'Datos'],
+  ['AWS', 'Herramientas'],
+  ['Pruebas automatizadas', 'Herramientas'],
+  ['Redes y conectividad', 'Infraestructura'],
+  ['Ciberseguridad', 'Infraestructura'],
+  ['Scrum', 'Transversales'],
+  ['Gestión de proyectos', 'Transversales'],
+  ['Atención al cliente', 'Transversales'],
+  ['Photoshop', 'Diseño'],
+  ['Ilustración digital', 'Diseño'],
+  ['Edición de video', 'Diseño'],
+  ['Redacción de contenidos', 'Negocios'],
+  ['SEO', 'Negocios'],
+  ['Redes sociales', 'Negocios'],
 ];
 
 const CARRERAS: readonly string[] = [
@@ -38,6 +58,10 @@ const CARRERAS: readonly string[] = [
   'Licenciatura en Administración de Empresas',
   'Licenciatura en Mercadeo',
   'Técnico en Desarrollo de Software',
+  'Licenciatura en Economía',
+  'Licenciatura en Ciencias de la Comunicación',
+  'Técnico en Redes y Telecomunicaciones',
+  'Ingeniería en Ciberseguridad',
 ];
 
 type Departamento = (typeof departamento.enumValues)[number];
@@ -46,6 +70,10 @@ const INSTITUCIONES: readonly (readonly [string, Departamento])[] = [
   ['Universidad pública', 'san_salvador'],
   ['Universidad privada', 'la_libertad'],
   ['Instituto técnico', 'santa_ana'],
+  ['Universidad Metropolitana Cuscatlán', 'san_salvador'],
+  ['Universidad del Valle de Zapotitán', 'la_libertad'],
+  ['Universidad Horizonte de Occidente', 'santa_ana'],
+  ['Instituto Politécnico Lempa', 'san_miguel'],
 ];
 
 const slug = (texto: string): string =>

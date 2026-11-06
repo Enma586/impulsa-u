@@ -20,13 +20,8 @@ import {
 } from '@impulsau/db';
 import type { BaseDeDatos } from '@impulsau/db';
 import { recalcularEvidencia } from '../compartido/infraestructura/evidencia.js';
-import {
-  EMPRESA_DEMO,
-  POSTULACIONES_DEMO,
-  PROYECTOS_DEMO,
-  TALENTOS_DEMO,
-  VACANTES_DEMO,
-} from './historia.js';
+import { HISTORIA_BASICA } from './historia.js';
+import type { HistoriaDemo } from './historia.js';
 
 /** Crea la cuenta en el proveedor de identidad (ya confirmada) y devuelve su id. */
 export type CrearCuenta = (correo: string) => Promise<string>;
@@ -52,11 +47,16 @@ function porTitulo(filas: { id: string; titulo: string }[], titulo: string): str
 export async function sembrarHistoria(
   db: BaseDeDatos,
   crearCuenta: CrearCuenta,
+  historia: HistoriaDemo = HISTORIA_BASICA,
 ): Promise<ResultadoSiembra> {
+  const { empresas: EMPRESAS, talentos: TALENTOS_DEMO, proyectos: PROYECTOS_DEMO } = historia;
+  const { vacantes: VACANTES_DEMO, postulaciones: POSTULACIONES_DEMO } = historia;
+  const primeraEmpresa = EMPRESAS[0];
+  if (!primeraEmpresa) throw new Error('La historia no tiene empresas');
   const [existente] = await db
     .select({ id: usuarios.id })
     .from(usuarios)
-    .where(eq(usuarios.correo, EMPRESA_DEMO.correo))
+    .where(eq(usuarios.correo, primeraEmpresa.correo))
     .limit(1);
   if (existente) return 'ya_sembrada';
 
@@ -71,7 +71,13 @@ export async function sembrarHistoria(
     .select({ id: instituciones.id, nombre: instituciones.nombre })
     .from(instituciones);
 
-  const idEmpresa = await crearCuenta(EMPRESA_DEMO.correo);
+  const idsEmpresa = new Map<string, string>();
+  for (const empresa of EMPRESAS) idsEmpresa.set(empresa.correo, await crearCuenta(empresa.correo));
+  const idEmpresaDe = (correo: string): string => {
+    const id = idsEmpresa.get(correo);
+    if (!id) throw new Error(`Falta la empresa ${correo} en la historia de la demo`);
+    return id;
+  };
   const idsTalento = new Map<string, string>();
   for (const talento of TALENTOS_DEMO) {
     idsTalento.set(talento.correo, await crearCuenta(talento.correo));
@@ -84,7 +90,12 @@ export async function sembrarHistoria(
 
   await db.transaction(async (tx) => {
     await tx.insert(usuarios).values([
-      { id: idEmpresa, correo: EMPRESA_DEMO.correo, rol: 'empresa', estado: 'activo' },
+      ...EMPRESAS.map((empresa) => ({
+        id: idEmpresaDe(empresa.correo),
+        correo: empresa.correo,
+        rol: 'empresa' as const,
+        estado: 'activo' as const,
+      })),
       ...TALENTOS_DEMO.map((talento) => ({
         id: idDe(talento.correo),
         correo: talento.correo,
@@ -93,15 +104,17 @@ export async function sembrarHistoria(
         fechaNacimiento: '2002-05-14',
       })),
     ]);
-    await tx.insert(empresas).values({
-      usuarioId: idEmpresa,
-      nombreComercial: EMPRESA_DEMO.nombreComercial,
-      sector: EMPRESA_DEMO.sector,
-      sitioWeb: EMPRESA_DEMO.sitioWeb,
-      descripcion: EMPRESA_DEMO.descripcion,
-      estadoVerificacion: 'verificada',
-      verificadaEn: new Date(),
-    });
+    await tx.insert(empresas).values(
+      EMPRESAS.map((empresa) => ({
+        usuarioId: idEmpresaDe(empresa.correo),
+        nombreComercial: empresa.nombreComercial,
+        sector: empresa.sector,
+        sitioWeb: empresa.sitioWeb,
+        descripcion: empresa.descripcion,
+        estadoVerificacion: 'verificada' as const,
+        verificadaEn: new Date(),
+      })),
+    );
 
     for (const talento of TALENTOS_DEMO) {
       const id = idDe(talento.correo);
@@ -130,7 +143,7 @@ export async function sembrarHistoria(
       }
     }
 
-    // Cada proyecto se publica un día antes que el anterior para que el feed tenga orden.
+    // Cada proyecto se publica unas horas antes que el anterior, con saltos irregulares, para que el feed tenga orden y se vea natural.
     const ahora = Date.now();
     const filasProyecto = await tx
       .insert(proyectos)
@@ -144,7 +157,7 @@ export async function sembrarHistoria(
           urlRepositorio: proyecto.urlRepositorio,
           estado: 'publicado' as const,
           likes: proyecto.likesDe.length,
-          publicadoEn: new Date(ahora - indice * 86_400_000),
+          publicadoEn: new Date(ahora - (indice * 36 + (indice % 5) * 7) * 3_600_000),
         })),
       )
       .returning({ id: proyectos.id, titulo: proyectos.titulo });
@@ -168,15 +181,18 @@ export async function sembrarHistoria(
     const filasVacante = await tx
       .insert(vacantes)
       .values(
-        VACANTES_DEMO.map((vacante) => ({
-          empresaId: idEmpresa,
+        VACANTES_DEMO.map((vacante, indice) => ({
+          empresaId: idEmpresaDe(vacante.empresa ?? primeraEmpresa.correo),
           titulo: vacante.titulo,
           descripcion: vacante.descripcion,
           tipo: vacante.tipo,
           modalidad: vacante.modalidad,
           departamento: vacante.departamento,
           estado: vacante.estado,
-          publicadaEn: vacante.estado === 'abierta' ? new Date() : null,
+          publicadaEn:
+            vacante.estado === 'abierta'
+              ? new Date(Date.now() - (indice * 2 + 1) * 86_400_000)
+              : null,
         })),
       )
       .returning({ id: vacantes.id, titulo: vacantes.titulo });
@@ -198,12 +214,15 @@ export async function sembrarHistoria(
 
     for (const postulacion of POSTULACIONES_DEMO) {
       const talentoId = idDe(postulacion.talento);
+      const vacanteDe = VACANTES_DEMO.find((candidata) => candidata.titulo === postulacion.vacante);
+      const idEmpresa = idEmpresaDe(vacanteDe?.empresa ?? primeraEmpresa.correo);
       const [creada] = await tx
         .insert(postulaciones)
         .values({
           vacanteId: porTitulo(filasVacante, postulacion.vacante),
           talentoId,
           estado: postulacion.estado,
+          motivoDescarte: postulacion.motivoDescarte ?? null,
         })
         .returning({ id: postulaciones.id });
       if (!creada) throw new Error('No se pudo crear la postulación de la demo');

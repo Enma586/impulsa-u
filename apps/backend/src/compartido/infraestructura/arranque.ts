@@ -15,6 +15,14 @@ export function crearAdaptador(entorno: Pick<Entorno, 'TRUST_PROXY'>): FastifyAd
   });
 }
 
+/** El plugin de Fastify solo permite GET, HEAD y POST por defecto: los PUT y DELETE de la API se bloquearían. */
+export function opcionesCors(origen: string) {
+  return {
+    origin: origen,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  };
+}
+
 export async function iniciarHttp(modulo: Type<unknown>): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     modulo,
@@ -25,7 +33,7 @@ export async function iniciarHttp(modulo: Type<unknown>): Promise<void> {
   );
   const entorno = app.get<Entorno>(ENTORNO);
   app.useLogger(app.get(Logger));
-  app.enableCors({ origin: entorno.CORS_ORIGIN });
+  app.enableCors(opcionesCors(entorno.CORS_ORIGIN));
   app.enableShutdownHooks();
   await app.listen(entorno.PORT, '0.0.0.0');
 }
