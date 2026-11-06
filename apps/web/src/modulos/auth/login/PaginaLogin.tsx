@@ -7,6 +7,8 @@ import {
   Dato,
   Enlace,
   Pila,
+  Separador,
+  Tarjeta,
   Texto,
   Titulo,
 } from '@impulsau/ui';
@@ -70,64 +72,71 @@ export function PaginaLogin() {
 
   return (
     <Contenedor ancho="angosto" aire>
-      <form onSubmit={(evento) => void enviar(evento)} noValidate>
-        <Pila espacio={18}>
-          <Pila espacio={8}>
-            <Dato color="acento">Iniciar sesión</Dato>
-            <Titulo nivel={1}>Tu trayectoria, con evidencia.</Titulo>
+      <Tarjeta relleno="amplio" elevada>
+        <form onSubmit={(evento) => void enviar(evento)} noValidate>
+          <Pila espacio={20}>
+            <Pila espacio={8}>
+              <Dato color="acento">Iniciar sesión</Dato>
+              <Titulo nivel={1}>Tu trayectoria, con evidencia.</Titulo>
+              <Texto color="secundario">Entra para ver tu portafolio y las vacantes.</Texto>
+            </Pila>
+
+            <Separador />
+
+            <Controller
+              control={control}
+              name="correo"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Correo electrónico"
+                  tipo="correo"
+                  autoComplete="email"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="contrasena"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Contraseña"
+                  tipo="contrasena"
+                  autoComplete="current-password"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+
+            {aviso && <AvisoError titulo="No pudimos iniciar sesión">{aviso}</AvisoError>}
+
+            <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
+              Entrar
+            </Boton>
+
+            <Separador />
+
+            <Pila espacio={8}>
+              <Texto color="secundario">
+                ¿Eres estudiante o egresado?{' '}
+                <Enlace href="/registro">Crea tu cuenta de talento</Enlace>
+              </Texto>
+              <Texto color="secundario">
+                ¿Contratas talento de entrada?{' '}
+                <Enlace href="/registro/empresa">Registra tu empresa</Enlace>
+              </Texto>
+            </Pila>
           </Pila>
-
-          <Controller
-            control={control}
-            name="correo"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Correo electrónico"
-                tipo="correo"
-                autoComplete="email"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="contrasena"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Contraseña"
-                tipo="contrasena"
-                autoComplete="current-password"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          {aviso && <AvisoError titulo="No pudimos iniciar sesión">{aviso}</AvisoError>}
-
-          <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
-            Entrar
-          </Boton>
-
-          <Pila espacio={6}>
-            <Texto color="secundario">
-              ¿Eres estudiante o egresado?{' '}
-              <Enlace href="/registro">Crea tu cuenta de talento</Enlace>
-            </Texto>
-            <Texto color="secundario">
-              ¿Contratas talento de entrada?{' '}
-              <Enlace href="/registro/empresa">Registra tu empresa</Enlace>
-            </Texto>
-          </Pila>
-        </Pila>
-      </form>
+        </form>
+      </Tarjeta>
     </Contenedor>
   );
 }

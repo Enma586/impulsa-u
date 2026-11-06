@@ -5,9 +5,15 @@ import { radios, tamanosTexto } from '../tema/escalas';
 export const tarjeta = style({
   boxSizing: 'border-box',
   padding: '16px',
+  border: `1px solid ${tema.color.borde}`,
   borderRadius: radios.tarjeta,
   backgroundColor: tema.color.superficie,
   color: tema.color.texto,
+});
+
+export const relleno = styleVariants({
+  normal: {},
+  amplio: { padding: '32px 28px', '@media': { '(max-width: 639px)': { padding: '24px 20px' } } },
 });
 
 export const nivel = styleVariants({
