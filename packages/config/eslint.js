@@ -26,6 +26,11 @@ export function crearConfig(raiz) {
         '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
         '@typescript-eslint/no-non-null-assertion': 'error',
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
+        // `redirect()` de TanStack Router se lanza por diseño desde `beforeLoad`.
+        '@typescript-eslint/only-throw-error': [
+          'error',
+          { allow: [{ from: 'package', package: '@tanstack/router-core', name: 'Redirect' }] },
+        ],
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
         'no-restricted-syntax': ['error', sinClassNameNiStyle],

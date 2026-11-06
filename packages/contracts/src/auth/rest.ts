@@ -5,9 +5,9 @@ import { crearEsquemaError } from '../comun/index.js';
 export const LlaveIdempotencia = z.uuid();
 export type LlaveIdempotencia = z.infer<typeof LlaveIdempotencia>;
 
-const Correo = z.string().trim().toLowerCase().pipe(z.email());
+export const Correo = z.string().trim().toLowerCase().pipe(z.email());
 
-const Contrasena = z
+export const Contrasena = z
   .string()
   .min(10, 'La contraseña debe tener al menos 10 caracteres')
   .max(72, 'La contraseña no puede superar 72 caracteres');

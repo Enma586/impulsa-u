@@ -21,6 +21,12 @@ describe('leerCambios', () => {
 });
 
 describe('migraciones inmutables', () => {
+  it('no cuenta el diario de drizzle-kit como migración editada', () => {
+    expect(migracionesModificadas(leerCambios(salida))).not.toContain(
+      'packages/db/migraciones/meta/_journal.json',
+    );
+  });
+
   it('señala las migraciones editadas, borradas o renombradas', () => {
     expect(migracionesModificadas(leerCambios(salida))).toEqual([
       'packages/db/migraciones/0001_usuarios_talentos.sql',

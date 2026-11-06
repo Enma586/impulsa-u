@@ -53,12 +53,24 @@ export function Grilla({
 export function Contenedor({
   children,
   ancho = 'ancho',
+  aire = false,
 }: {
   children: ReactNode;
   ancho?: keyof typeof estilos.anchoContenedor;
+  aire?: boolean;
 }) {
-  return (
-    <div className={[estilos.contenedor, estilos.anchoContenedor[ancho]].join(' ')}>{children}</div>
+  const clases = [
+    estilos.contenedor,
+    estilos.anchoContenedor[ancho],
+    aire && estilos.aireContenedor,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  // Con `aire` la pantalla no tiene marco de app, así que el contenedor es su contenido principal.
+  return aire ? (
+    <main className={clases}>{children}</main>
+  ) : (
+    <div className={clases}>{children}</div>
   );
 }
 

@@ -14,7 +14,14 @@ import type {
 } from '../../../compartido/dominio/idempotencia.js';
 import { LIMITADOR_TASA } from '../../../compartido/dominio/limite-tasa.js';
 import { CompartidoHttpModule } from '../../../compartido/http/compartido-http.module.js';
+import { RegistrarEmpresa } from '../aplicacion/registrar-empresa.js';
 import { RegistrarTalento } from '../aplicacion/registrar-talento.js';
+import {
+  CerrarSesion,
+  IniciarSesion,
+  ObtenerSesionActual,
+  RenovarSesion,
+} from '../aplicacion/sesion.js';
 import { PROVEEDOR_IDENTIDAD } from '../puertos/proveedor-identidad.js';
 import type { CuentaCreada, ProveedorIdentidad } from '../puertos/proveedor-identidad.js';
 import { RELOJ } from '../puertos/reloj.js';
@@ -48,6 +55,9 @@ const identidad: ProveedorIdentidad = {
     cuentasEliminadas.push(id);
     return Promise.resolve();
   },
+  iniciarSesion: () => Promise.reject(new Error('no se usa en esta prueba')),
+  renovarSesion: () => Promise.reject(new Error('no se usa en esta prueba')),
+  cerrarSesion: () => Promise.reject(new Error('no se usa en esta prueba')),
 };
 
 const usuarios: RepositorioUsuarios = {
@@ -56,7 +66,10 @@ const usuarios: RepositorioUsuarios = {
     perfiles += 1;
     return Promise.resolve('creado');
   },
+  crearEmpresa: () => Promise.reject(new Error('no se usa en esta prueba')),
   buscarPorId: () => Promise.resolve(null),
+  resumenSesion: () => Promise.resolve(null),
+  activar: () => Promise.resolve(),
 };
 
 class AlmacenEnMemoria implements AlmacenIdempotencia {
@@ -90,6 +103,11 @@ class AlmacenEnMemoria implements AlmacenIdempotencia {
   controllers: [AuthController],
   providers: [
     RegistrarTalento,
+    RegistrarEmpresa,
+    IniciarSesion,
+    RenovarSesion,
+    CerrarSesion,
+    ObtenerSesionActual,
     { provide: PROVEEDOR_IDENTIDAD, useValue: identidad },
     { provide: REPOSITORIO_USUARIOS, useValue: usuarios },
     {

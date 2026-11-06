@@ -65,3 +65,30 @@ export const giro = style({
   borderRadius: radios.circulo,
   animation: `${rotar} 0.8s linear infinite`,
 });
+
+export const enlaceTexto = style({
+  color: tema.color.enlace,
+  fontWeight: 600,
+  textDecoration: 'underline',
+  textUnderlineOffset: '3px',
+  cursor: 'pointer',
+  selectors: { '&[data-focus-visible]': anilloFoco },
+});
+
+export const sinSubrayado = style({ textDecoration: 'none' });
+
+export const alternar = style([
+  boton,
+  {
+    backgroundColor: tema.color.superficie,
+    color: tema.color.texto,
+    borderColor: tema.color.borde,
+    selectors: {
+      '&[data-selected]': {
+        backgroundColor: tema.color.logro.fondo,
+        color: tema.color.logro.texto,
+        borderColor: tema.color.logro.texto,
+      },
+    },
+  },
+]);
