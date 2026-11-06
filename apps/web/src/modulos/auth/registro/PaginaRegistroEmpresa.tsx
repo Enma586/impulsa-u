@@ -8,6 +8,8 @@ import {
   Dato,
   Enlace,
   Pila,
+  Separador,
+  Tarjeta,
   Texto,
   Titulo,
 } from '@impulsau/ui';
@@ -111,77 +113,23 @@ export function PaginaRegistroEmpresa() {
 
   return (
     <Contenedor ancho="medio" aire>
-      <form onSubmit={(evento) => void enviar(evento)} noValidate>
-        <Pila espacio={18}>
-          <Pila espacio={8}>
-            <Dato color="acento">Crear cuenta de empresa</Dato>
-            <Titulo nivel={1}>Encuentra talento con evidencia</Titulo>
-          </Pila>
+      <Tarjeta relleno="amplio" elevada>
+        <form onSubmit={(evento) => void enviar(evento)} noValidate>
+          <Pila espacio={20}>
+            <Pila espacio={8}>
+              <Dato color="acento">Crear cuenta de empresa</Dato>
+              <Titulo nivel={1}>Encuentra talento con evidencia</Titulo>
+            </Pila>
 
-          <Controller
-            control={control}
-            name="nombreComercial"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Nombre comercial"
-                autoComplete="organization"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="correo"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Correo electrónico"
-                tipo="correo"
-                autoComplete="email"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="contrasena"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Crea una contraseña"
-                tipo="contrasena"
-                autoComplete="new-password"
-                ayuda="Mínimo 10 caracteres."
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="esAgencia"
-            render={({ field }) => (
-              <Casilla seleccionada={field.value} onChange={field.onChange}>
-                Soy una agencia de reclutamiento y publico vacantes para otra empresa.
-              </Casilla>
-            )}
-          />
-          {esAgencia && (
+            <Separador />
+
             <Controller
               control={control}
-              name="clienteDeclarado"
+              name="nombreComercial"
               render={({ field, fieldState }) => (
                 <Campo
-                  etiqueta="¿Para qué empresa reclutas?"
+                  etiqueta="Nombre comercial"
+                  autoComplete="organization"
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
@@ -190,31 +138,92 @@ export function PaginaRegistroEmpresa() {
                 />
               )}
             />
-          )}
-          <Controller
-            control={control}
-            name="aceptaTerminos"
-            render={({ field, fieldState }) => (
-              <Casilla
-                seleccionada={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-              >
-                Acepto los términos de uso.
-              </Casilla>
+            <Controller
+              control={control}
+              name="correo"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Correo electrónico"
+                  tipo="correo"
+                  autoComplete="email"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="contrasena"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Crea una contraseña"
+                  tipo="contrasena"
+                  autoComplete="new-password"
+                  ayuda="Mínimo 10 caracteres."
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="esAgencia"
+              render={({ field }) => (
+                <Casilla seleccionada={field.value} onChange={field.onChange}>
+                  Soy una agencia de reclutamiento y publico vacantes para otra empresa.
+                </Casilla>
+              )}
+            />
+            {esAgencia && (
+              <Controller
+                control={control}
+                name="clienteDeclarado"
+                render={({ field, fieldState }) => (
+                  <Campo
+                    etiqueta="¿Para qué empresa reclutas?"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    refInput={field.ref}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
             )}
-          />
+            <Controller
+              control={control}
+              name="aceptaTerminos"
+              render={({ field, fieldState }) => (
+                <Casilla
+                  seleccionada={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                >
+                  Acepto los términos de uso.
+                </Casilla>
+              )}
+            />
 
-          {aviso && <AvisoError titulo="No pudimos crear la cuenta">{aviso}</AvisoError>}
+            {aviso && <AvisoError titulo="No pudimos crear la cuenta">{aviso}</AvisoError>}
 
-          <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
-            Crear cuenta de empresa
-          </Boton>
-          <Texto color="secundario">
-            ¿Ya tienes cuenta? <Enlace href="/login">Inicia sesión</Enlace>
-          </Texto>
-        </Pila>
-      </form>
+            <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
+              Crear cuenta de empresa
+            </Boton>
+
+            <Separador />
+
+            <Texto color="secundario">
+              ¿Ya tienes cuenta? <Enlace href="/login">Inicia sesión</Enlace>
+            </Texto>
+          </Pila>
+        </form>
+      </Tarjeta>
     </Contenedor>
   );
 }
