@@ -69,7 +69,7 @@ export function PaginaLogin() {
   });
 
   return (
-    <Contenedor ancho="angosto">
+    <Contenedor ancho="angosto" aire>
       <form onSubmit={(evento) => void enviar(evento)} noValidate>
         <Pila espacio={18}>
           <Pila espacio={8}>

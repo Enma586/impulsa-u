@@ -13,6 +13,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  Navigate,
   Outlet,
   redirect,
   useRouter,
@@ -45,7 +46,7 @@ import {
 } from './modulos/vacantes/PaginasVacante';
 import { cerrarSesion } from './sesion/acciones';
 import { almacenSesion } from './sesion/almacen';
-import { useUsuario } from './sesion/useSesion';
+import { useSesion } from './sesion/useSesion';
 
 const raiz = createRootRoute({ component: Outlet });
 
@@ -99,9 +100,13 @@ function enlacesPara(rol: 'talento' | 'empresa', ruta: string): EnlaceNavegacion
 }
 
 function Marco() {
-  const usuario = useUsuario();
+  const sesion = useSesion();
   const enrutador = useRouter();
   const ruta = useRouterState({ select: (estado) => estado.location.pathname });
+
+  // Al cerrar sesión el almacén queda vacío antes de que el router navegue: se redirige aquí.
+  if (!sesion) return <Navigate to="/login" />;
+  const usuario = sesion.usuario;
 
   return (
     <ProveedorNavegacion

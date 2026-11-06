@@ -46,7 +46,7 @@ export function EstadoVacio({
   return (
     <Tarjeta>
       <Pila espacio={12}>
-        <Titulo nivel={3}>{titulo}</Titulo>
+        <Titulo nivel={2}>{titulo}</Titulo>
         {children && <Texto color="secundario">{children}</Texto>}
         {accion}
       </Pila>

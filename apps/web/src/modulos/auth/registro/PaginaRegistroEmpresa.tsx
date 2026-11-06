@@ -96,7 +96,7 @@ export function PaginaRegistroEmpresa() {
 
   if (correoRegistrado !== null) {
     return (
-      <Contenedor ancho="angosto">
+      <Contenedor ancho="angosto" aire>
         <Pila espacio={16}>
           <Dato color="acento">Cuenta creada</Dato>
           <Titulo nivel={1}>Revisa tu correo</Titulo>
@@ -110,7 +110,7 @@ export function PaginaRegistroEmpresa() {
   }
 
   return (
-    <Contenedor ancho="medio">
+    <Contenedor ancho="medio" aire>
       <form onSubmit={(evento) => void enviar(evento)} noValidate>
         <Pila espacio={18}>
           <Pila espacio={8}>

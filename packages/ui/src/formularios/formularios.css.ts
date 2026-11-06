@@ -40,6 +40,7 @@ export const cajaConAccion = style({ paddingRight: '6px' });
 
 export const entrada = style({
   flexGrow: 1,
+  alignSelf: 'stretch',
   minWidth: 0,
   border: 'none',
   outline: 'none',

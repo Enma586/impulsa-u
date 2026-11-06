@@ -45,6 +45,16 @@ export const contenedor = style({
   paddingInline: espaciado[16],
 });
 
+/** Pantallas sin marco (acceso y registro): centradas en vertical y con aire arriba y abajo. */
+export const aireContenedor = style({
+  minHeight: '100dvh',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  paddingBlock: espaciado[48],
+  '@media': { '(max-width: 639px)': { paddingBlock: espaciado[32] } },
+});
+
 export const anchoContenedor = styleVariants({
   angosto: { maxWidth: '480px' },
   medio: { maxWidth: '760px' },
