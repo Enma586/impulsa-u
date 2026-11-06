@@ -48,6 +48,8 @@ export const entrada = style({
   color: tema.color.texto,
   fontFamily: 'inherit',
   fontSize: tamanosTexto[15],
+  // El foco lo muestra la caja (borde verde); sin esto la regla global dibuja un recuadro blanco.
+  selectors: { '&:focus, &:focus-visible': { outline: 'none' } },
   '::placeholder': { color: tema.color.textoSecundario },
 });
 
