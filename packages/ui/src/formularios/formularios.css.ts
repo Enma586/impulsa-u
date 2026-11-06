@@ -51,6 +51,9 @@ export const entrada = style({
   // El foco lo muestra la caja (borde verde); sin esto la regla global dibuja un recuadro blanco.
   selectors: { '&:focus, &:focus-visible': { outline: 'none' } },
   '::placeholder': { color: tema.color.textoSecundario },
+  // Edge dibuja su propio ojo (y una X) en estos campos; el componente ya trae el suyo.
+  '::-ms-reveal': { display: 'none' },
+  '::-ms-clear': { display: 'none' },
 });
 
 export const boton = style({
