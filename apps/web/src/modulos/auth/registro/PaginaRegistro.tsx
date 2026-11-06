@@ -6,11 +6,14 @@ import {
   Casilla,
   Contenedor,
   Dato,
+  Enlace,
   Fila,
   Modal,
   Pila,
   Segmentado,
   Selector,
+  Separador,
+  Tarjeta,
   Texto,
   Titulo,
 } from '@impulsau/ui';
@@ -163,171 +166,181 @@ export function PaginaRegistro() {
 
   return (
     <Contenedor ancho="medio" aire>
-      <form onSubmit={(evento) => void enviar(evento)} noValidate>
-        <Pila espacio={18}>
-          <Pila espacio={8}>
-            <Dato color="acento">Crear cuenta</Dato>
-            <Titulo nivel={1}>Empieza tu trayectoria</Titulo>
-          </Pila>
+      <Tarjeta relleno="amplio" elevada>
+        <form onSubmit={(evento) => void enviar(evento)} noValidate>
+          <Pila espacio={20}>
+            <Pila espacio={8}>
+              <Dato color="acento">Crear cuenta</Dato>
+              <Titulo nivel={1}>Empieza tu trayectoria</Titulo>
+            </Pila>
 
-          <Controller
-            control={control}
-            name="nombreCompleto"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Nombre completo"
-                autoComplete="name"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="correo"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Correo electrónico"
-                tipo="correo"
-                autoComplete="email"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="contrasena"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Crea una contraseña"
-                tipo="contrasena"
-                autoComplete="new-password"
-                ayuda="Mínimo 10 caracteres."
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="fechaNacimiento"
-            render={({ field, fieldState }) => (
-              <Campo
-                etiqueta="Fecha de nacimiento"
-                tipo="fecha"
-                autoComplete="bday"
-                ayuda="Debes tener 18 años o más."
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                refInput={field.ref}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
+            <Separador />
 
-          <Controller
-            control={control}
-            name="estadoAcademico"
-            render={({ field }) => (
-              <Segmentado
-                etiqueta="Estado académico"
-                value={field.value}
-                onChange={(valor) => {
-                  field.onChange(valor === 'egresado' ? 'egresado' : 'estudiante');
+            <Controller
+              control={control}
+              name="nombreCompleto"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Nombre completo"
+                  autoComplete="name"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="correo"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Correo electrónico"
+                  tipo="correo"
+                  autoComplete="email"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="contrasena"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Crea una contraseña"
+                  tipo="contrasena"
+                  autoComplete="new-password"
+                  ayuda="Mínimo 10 caracteres."
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="fechaNacimiento"
+              render={({ field, fieldState }) => (
+                <Campo
+                  etiqueta="Fecha de nacimiento"
+                  tipo="fecha"
+                  autoComplete="bday"
+                  ayuda="Debes tener 18 años o más."
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  refInput={field.ref}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="estadoAcademico"
+              render={({ field }) => (
+                <Segmentado
+                  etiqueta="Estado académico"
+                  value={field.value}
+                  onChange={(valor) => {
+                    field.onChange(valor === 'egresado' ? 'egresado' : 'estudiante');
+                  }}
+                  opciones={[
+                    { valor: 'estudiante', etiqueta: 'Estudiante' },
+                    { valor: 'egresado', etiqueta: 'Egresado' },
+                  ]}
+                />
+              )}
+            />
+            {estadoAcademico === 'estudiante' ? (
+              <Controller
+                control={control}
+                name="ciclo"
+                render={({ field, fieldState }) => (
+                  <Selector
+                    etiqueta="Ciclo actual"
+                    opciones={ciclos}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            ) : (
+              <Controller
+                control={control}
+                name="anioEgreso"
+                render={({ field, fieldState }) => (
+                  <Selector
+                    etiqueta="Año de egreso"
+                    opciones={aniosEgreso}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            )}
+
+            <Controller
+              control={control}
+              name="declaracionSinExperiencia"
+              render={({ field, fieldState }) => (
+                <Casilla
+                  seleccionada={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                >
+                  Declaro que no tengo experiencia laboral formal en mi área. Prácticas, pasantías,
+                  horas sociales y voluntariado no cuentan.
+                </Casilla>
+              )}
+            />
+            <Fila>
+              <Boton
+                variante="fantasma"
+                onPress={() => {
+                  setModalAbierto(true);
                 }}
-                opciones={[
-                  { valor: 'estudiante', etiqueta: 'Estudiante' },
-                  { valor: 'egresado', etiqueta: 'Egresado' },
-                ]}
-              />
-            )}
-          />
-          {estadoAcademico === 'estudiante' ? (
-            <Controller
-              control={control}
-              name="ciclo"
-              render={({ field, fieldState }) => (
-                <Selector
-                  etiqueta="Ciclo actual"
-                  opciones={ciclos}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-          ) : (
-            <Controller
-              control={control}
-              name="anioEgreso"
-              render={({ field, fieldState }) => (
-                <Selector
-                  etiqueta="Año de egreso"
-                  opciones={aniosEgreso}
-                  value={field.value || null}
-                  onChange={field.onChange}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-          )}
-
-          <Controller
-            control={control}
-            name="declaracionSinExperiencia"
-            render={({ field, fieldState }) => (
-              <Casilla
-                seleccionada={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
               >
-                Declaro que no tengo experiencia laboral formal en mi área. Prácticas, pasantías,
-                horas sociales y voluntariado no cuentan.
-              </Casilla>
-            )}
-          />
-          <Fila>
-            <Boton
-              variante="fantasma"
-              onPress={() => {
-                setModalAbierto(true);
-              }}
-            >
-              ¿Qué cuenta como experiencia?
+                ¿Qué cuenta como experiencia?
+              </Boton>
+            </Fila>
+            <Controller
+              control={control}
+              name="aceptaTerminos"
+              render={({ field, fieldState }) => (
+                <Casilla
+                  seleccionada={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                >
+                  Acepto los términos de uso.
+                </Casilla>
+              )}
+            />
+
+            {aviso && <AvisoError titulo={aviso.titulo}>{aviso.texto}</AvisoError>}
+
+            <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
+              Crear cuenta
             </Boton>
-          </Fila>
-          <Controller
-            control={control}
-            name="aceptaTerminos"
-            render={({ field, fieldState }) => (
-              <Casilla
-                seleccionada={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-              >
-                Acepto los términos de uso.
-              </Casilla>
-            )}
-          />
 
-          {aviso && <AvisoError titulo={aviso.titulo}>{aviso.texto}</AvisoError>}
+            <Separador />
 
-          <Boton type="submit" tamano="grande" anchoCompleto cargando={isSubmitting}>
-            Crear cuenta
-          </Boton>
-        </Pila>
-      </form>
+            <Texto color="secundario">
+              ¿Ya tienes cuenta? <Enlace href="/login">Inicia sesión</Enlace>
+            </Texto>
+          </Pila>
+        </form>
+      </Tarjeta>
 
       <Modal
         abierto={modalAbierto}
