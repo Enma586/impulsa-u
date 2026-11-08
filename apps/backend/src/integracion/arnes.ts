@@ -8,7 +8,11 @@ import { crearBaseDeDatos } from '@impulsau/db';
 import type { ConexionBaseDeDatos } from '@impulsau/db';
 import type { z } from 'zod';
 import { AppHttpModule } from '../app.http.module.js';
-import { VERIFICADOR_TOKEN } from '../compartido/dominio/autenticacion.js';
+import { BUSCADOR_USUARIO, VERIFICADOR_TOKEN } from '../compartido/dominio/autenticacion.js';
+import type { BuscadorUsuario, VerificadorToken } from '../compartido/dominio/autenticacion.js';
+import { REDIS } from '../compartido/infraestructura/conexion-redis.module.js';
+import { AdaptadorSocketRedis } from '../compartido/infraestructura/tiempo-real/adaptador-socket-redis.js';
+import type { Redis } from 'ioredis';
 import { EMISOR_TIEMPO_REAL } from '../compartido/dominio/tiempo-real.js';
 import type { EmisorTiempoReal } from '../compartido/dominio/tiempo-real.js';
 import { fallo, ok } from '../compartido/dominio/resultado.js';
@@ -32,14 +36,18 @@ export interface EventoEmitido {
 export interface Arnes {
   app: NestFastifyApplication;
   base: ConexionBaseDeDatos;
-  /** Eventos que la API habría enviado por socket, en orden. */
+  /** Eventos que la API habría enviado por socket, en orden (vacío con `socketsReales`). */
   eventos: EventoEmitido[];
+  /** Dirección del servidor cuando se pidió `socketsReales`. */
+  url: string;
   como(
     usuarioId: string,
     metodo: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
     cuerpo?: object,
   ): ReturnType<NestFastifyApplication['inject']>;
+  /** Borra el contador de mensajes por ventana de estos usuarios (las pruebas escriben a ráfagas). */
+  reiniciarLimiteMensajes(...usuarios: string[]): Promise<void>;
   cerrar(): Promise<void>;
 }
 
@@ -63,8 +71,14 @@ async function aplicarMigraciones(conexion: ConexionBaseDeDatos): Promise<void> 
   }
 }
 
+export interface OpcionesArnes {
+  /** Escucha en un puerto con Socket.IO real (adaptador de Redis y autenticación del handshake). */
+  socketsReales?: boolean;
+}
+
 export async function crearArnes(
   sembrar: (base: ConexionBaseDeDatos) => Promise<void>,
+  opciones: OpcionesArnes = {},
 ): Promise<Arnes> {
   const nombre = `integracion_${randomUUID().replaceAll('-', '')}`;
   const admin = crearBaseDeDatos(URL_ADMIN, 1);
@@ -93,30 +107,44 @@ export async function crearArnes(
     aUsuario: (usuarioId, evento, ...datos) => {
       eventos.push({ usuarioId, evento, datos });
     },
-    aConversacion: (conversacionId, evento, ...datos) => {
-      eventos.push({ usuarioId: `conversation:${conversacionId}`, evento, datos });
-    },
   };
 
-  const modulo = await Test.createTestingModule({ imports: [AppHttpModule] })
+  const constructor = Test.createTestingModule({ imports: [AppHttpModule] })
     .overrideProvider(VERIFICADOR_TOKEN)
     .useValue({
       verificar: (token: string) =>
         Promise.resolve(
           token.length === 36 ? ok({ usuarioId: token, sesionId: null }) : fallo('token_invalido'),
         ),
-    })
-    .overrideProvider(EMISOR_TIEMPO_REAL)
-    .useValue(emisor)
-    .compile();
+    });
+  const modulo = await (
+    opciones.socketsReales
+      ? constructor
+      : constructor.overrideProvider(EMISOR_TIEMPO_REAL).useValue(emisor)
+  ).compile();
   const app = modulo.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
-  await app.init();
-  await app.getHttpAdapter().getInstance().ready();
+  let url = '';
+  if (opciones.socketsReales) {
+    app.useWebSocketAdapter(
+      new AdaptadorSocketRedis(app, {
+        corsOrigen: 'http://localhost:5173',
+        redis: app.get<Redis>(REDIS),
+        verificador: app.get<VerificadorToken>(VERIFICADOR_TOKEN, { strict: false }),
+        usuarios: app.get<BuscadorUsuario>(BUSCADOR_USUARIO, { strict: false }),
+      }),
+    );
+    await app.listen(0, '127.0.0.1');
+    url = (await app.getUrl()).replace('[::1]', '127.0.0.1');
+  } else {
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+  }
 
   return {
     app,
     base,
     eventos,
+    url,
     como: (usuarioId, metodo, url, cuerpo) =>
       app.inject({
         method: metodo,
@@ -127,6 +155,10 @@ export async function crearArnes(
         },
         ...(cuerpo ? { payload: cuerpo } : {}),
       }),
+    reiniciarLimiteMensajes: async (...usuarios) => {
+      if (usuarios.length === 0) return;
+      await app.get<Redis>(REDIS).del(...usuarios.map((id) => `tasa:mensaje:${id}`));
+    },
     cerrar: async () => {
       await app.close();
       await base.cerrar();

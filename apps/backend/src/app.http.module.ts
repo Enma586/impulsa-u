@@ -5,6 +5,7 @@ import { AuthHttpModule, AuthModule } from './modulos/auth/index.js';
 import { CatalogosModule } from './modulos/catalogos/index.js';
 import { ConexionesModule } from './modulos/conexiones/index.js';
 import { InteraccionesModule } from './modulos/interacciones/index.js';
+import { MensajeriaModule } from './modulos/mensajeria/index.js';
 import { PerfilesModule } from './modulos/perfiles/index.js';
 import { ProyectosModule } from './modulos/proyectos/index.js';
 import { VacantesModule } from './modulos/vacantes/index.js';
@@ -35,6 +36,7 @@ import { TiempoRealModule } from './compartido/infraestructura/tiempo-real/tiemp
     ArchivosModule,
     ProyectosModule,
     InteraccionesModule,
+    MensajeriaModule,
     VacantesModule,
   ],
   providers: [

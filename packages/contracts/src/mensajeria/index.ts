@@ -65,6 +65,7 @@ export const ErrorMensajeria = crearEsquemaError([
   'no_encontrado',
   'validacion',
   'conversacion_bloqueada',
+  'idempotencia_reutilizada',
   'demasiadas_peticiones',
   'error_interno',
 ]);
