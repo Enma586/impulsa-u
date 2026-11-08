@@ -1,7 +1,9 @@
 import {
   BotonIcono,
   IconoCasa,
+  IconoCorazon,
   IconoMaletin,
+  IconoMensaje,
   IconoPapeles,
   IconoSalir,
   IconoUsuario,
@@ -17,12 +19,17 @@ import {
   Outlet,
   redirect,
   useRouter,
+  useParams,
   useRouterState,
 } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { Galeria } from './galeria';
 import { PaginaLogin } from './modulos/auth/login/PaginaLogin';
 import { PaginaRegistro } from './modulos/auth/registro/PaginaRegistro';
 import { PaginaRegistroEmpresa } from './modulos/auth/registro/PaginaRegistroEmpresa';
+import { Bandeja } from './modulos/mensajeria/Bandeja';
+import { PaginaIntereses } from './modulos/mensajeria/PaginaIntereses';
+import { conectarTiempoReal } from './modulos/mensajeria/tiempoReal';
 import { PaginaEditarPerfil } from './modulos/perfiles/PaginasEdicion';
 import {
   PaginaMiPerfil,
@@ -90,6 +97,20 @@ function enlacesPara(rol: 'talento' | 'empresa', ruta: string): EnlaceNavegacion
       activo: activo('/postulaciones'),
     });
   }
+  base.push(
+    {
+      href: '/mensajes',
+      etiqueta: 'Mensajes',
+      icono: <IconoMensaje />,
+      activo: activo('/mensajes'),
+    },
+    {
+      href: '/intereses',
+      etiqueta: 'Intereses',
+      icono: <IconoCorazon />,
+      activo: activo('/intereses'),
+    },
+  );
   base.push({
     href: '/perfil',
     etiqueta: 'Perfil',
@@ -103,6 +124,10 @@ function Marco() {
   const sesion = useSesion();
   const enrutador = useRouter();
   const ruta = useRouterState({ select: (estado) => estado.location.pathname });
+  const haySesion = sesion !== null;
+
+  // Una sola conexión en vivo mientras haya sesión; se cierra al salir.
+  useEffect(() => (haySesion ? conectarTiempoReal() : undefined), [haySesion]);
 
   // Al cerrar sesión el almacén queda vacío antes de que el router navegue: se redirige aquí.
   if (!sesion) return <Navigate to="/login" />;
@@ -146,6 +171,11 @@ function hija<P extends string>(path: P, component: () => React.JSX.Element) {
   return createRoute({ getParentRoute: () => protegida, path, component });
 }
 
+function PaginaConversacion() {
+  const { conversacionId } = useParams({ strict: false });
+  return <Bandeja {...(conversacionId ? { conversacionId } : {})} />;
+}
+
 const arbol = raiz.addChildren([
   login,
   registro,
@@ -165,6 +195,9 @@ const arbol = raiz.addChildren([
     hija('/vacantes/$id', PaginaVacante),
     hija('/vacantes/$id/editar', PaginaEditarVacante),
     hija('/postulaciones', PaginaMisPostulaciones),
+    hija('/mensajes', () => <Bandeja />),
+    hija('/mensajes/$conversacionId', PaginaConversacion),
+    hija('/intereses', PaginaIntereses),
   ]),
 ]);
 
