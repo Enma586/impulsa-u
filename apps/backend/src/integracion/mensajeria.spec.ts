@@ -45,7 +45,7 @@ beforeEach(async () => {
   await arnes.base.sql`DELETE FROM conversaciones`;
   await arnes.base.sql`DELETE FROM intereses`;
   await arnes.base.sql`DELETE FROM bloqueos`;
-  await arnes.reiniciarLimiteMensajes(empresa, otraEmpresa, ana, luis, limitado);
+  await arnes.reiniciarLimites(empresa, otraEmpresa, ana, luis, limitado);
   arnes.eventos.length = 0;
   conversacion = await abrirConversacion(empresa, ana);
   arnes.eventos.length = 0;
@@ -313,5 +313,127 @@ describe('lista de conversaciones', () => {
     );
     expect(segunda.items.map((c) => c.id)).toEqual([conversacion]);
     expect(segunda.siguienteCursor).toBeNull();
+  });
+});
+
+describe('CU-34 marcar como leído', () => {
+  const marcar = (usuario: string, secuencia: number, id = conversacion) =>
+    como(usuario, 'PUT', `/conversaciones/${id}/lectura`, { secuencia });
+  const avisosDeLectura = () => arnes.eventos.filter((e) => e.evento === 'message:read');
+
+  async function escribirTres(): Promise<void> {
+    for (const texto of ['uno', 'dos', 'tres']) await enviar(empresa, texto);
+    arnes.eventos.length = 0;
+  }
+
+  it('avanza la marca, baja los no leídos y avisa a los dos participantes', async () => {
+    await escribirTres();
+    const respuesta = await marcar(ana, 2);
+    expect(respuesta.statusCode).toBe(200);
+    expect(leer(respuesta, mensajeria.EventoLecturaActualizada)).toEqual({
+      conversacionId: conversacion,
+      usuarioId: ana,
+      secuencia: 2,
+    });
+
+    const deAna = leer(await como(ana, 'GET', '/conversaciones'), mensajeria.PaginaConversaciones);
+    expect(deAna.items[0]?.noLeidos).toBe(1);
+    const deEmpresa = leer(
+      await como(empresa, 'GET', '/conversaciones'),
+      mensajeria.PaginaConversaciones,
+    );
+    expect(deEmpresa.items[0]?.leidoPorOtroHasta).toBe(2);
+    expect(
+      avisosDeLectura()
+        .map((e) => e.usuarioId)
+        .sort(),
+    ).toEqual([ana, empresa].sort());
+  });
+
+  it('solo avanza: repetir o retroceder no cambia nada ni vuelve a avisar', async () => {
+    await escribirTres();
+    await marcar(ana, 2);
+    arnes.eventos.length = 0;
+
+    expect(leer(await marcar(ana, 2), mensajeria.EventoLecturaActualizada).secuencia).toBe(2);
+    expect(leer(await marcar(ana, 1), mensajeria.EventoLecturaActualizada).secuencia).toBe(2);
+    expect(avisosDeLectura()).toHaveLength(0);
+  });
+
+  it('no se puede leer más allá del último mensaje', async () => {
+    await escribirTres();
+    expect(leer(await marcar(ana, 99), mensajeria.EventoLecturaActualizada).secuencia).toBe(3);
+    const deAna = leer(await como(ana, 'GET', '/conversaciones'), mensajeria.PaginaConversaciones);
+    expect(deAna.items[0]?.noLeidos).toBe(0);
+  });
+
+  it('en una conversación sin mensajes no hay nada que marcar', async () => {
+    const respuesta = await marcar(ana, 1);
+    expect(leer(respuesta, mensajeria.EventoLecturaActualizada).secuencia).toBe(0);
+    expect(avisosDeLectura()).toHaveLength(0);
+  });
+
+  it('quien no participa recibe 404 y una secuencia inválida, 422', async () => {
+    await escribirTres();
+    expect((await marcar(luis, 1)).statusCode).toBe(404);
+    expect((await marcar(ana, 0)).statusCode).toBe(422);
+  });
+
+  it('marcas simultáneas no retroceden: queda la mayor', async () => {
+    await escribirTres();
+    await Promise.all([marcar(ana, 1), marcar(ana, 3), marcar(ana, 2)]);
+    const [fila] = await arnes.base.sql<{ leida: number }[]>`
+      SELECT ultima_secuencia_leida::int AS leida FROM lecturas WHERE usuario_id = ${ana}`;
+    expect(fila?.leida).toBe(3);
+  });
+});
+
+describe('CU-35 bloquear a un usuario', () => {
+  const bloquear = (quien: string, a: string) => como(quien, 'PUT', `/usuarios/${a}/bloqueo`);
+  const desbloquear = (quien: string, a: string) => como(quien, 'DELETE', `/usuarios/${a}/bloqueo`);
+
+  it('es idempotente y corta la conversación para los dos lados', async () => {
+    expect((await bloquear(ana, empresa)).statusCode).toBe(204);
+    expect((await bloquear(ana, empresa)).statusCode).toBe(204);
+
+    for (const quien of [ana, empresa]) {
+      const respuesta = await enviar(quien, 'Hola');
+      expect(respuesta.statusCode).toBe(403);
+      expect(respuesta.json()).toMatchObject({ code: 'conversacion_bloqueada' });
+    }
+  });
+
+  it('la lista distingue quién bloqueó para que solo esa persona pueda deshacerlo', async () => {
+    await bloquear(ana, empresa);
+
+    const deAna = leer(await como(ana, 'GET', '/conversaciones'), mensajeria.PaginaConversaciones);
+    expect(deAna.items[0]).toMatchObject({ bloqueada: true, bloqueadaPorMi: true });
+    const deEmpresa = leer(
+      await como(empresa, 'GET', '/conversaciones'),
+      mensajeria.PaginaConversaciones,
+    );
+    expect(deEmpresa.items[0]).toMatchObject({ bloqueada: true, bloqueadaPorMi: false });
+  });
+
+  it('desbloquear devuelve la conversación y también es idempotente', async () => {
+    await bloquear(ana, empresa);
+    expect((await desbloquear(ana, empresa)).statusCode).toBe(204);
+    expect((await desbloquear(ana, empresa)).statusCode).toBe(204);
+    expect((await enviar(empresa, 'Hola de nuevo')).statusCode).toBe(201);
+  });
+
+  it('quien fue bloqueado no puede deshacer el bloqueo del otro', async () => {
+    await bloquear(ana, empresa);
+    expect((await desbloquear(empresa, ana)).statusCode).toBe(204);
+    expect((await enviar(empresa, 'Hola')).statusCode).toBe(403);
+  });
+
+  it('no se puede bloquear a uno mismo (422) ni a quien no existe (404)', async () => {
+    expect((await bloquear(ana, ana)).statusCode).toBe(422);
+    expect((await bloquear(ana, randomUUID())).statusCode).toBe(404);
+  });
+
+  it('un docente no puede bloquear (403)', async () => {
+    expect((await bloquear(docente, ana)).statusCode).toBe(403);
   });
 });

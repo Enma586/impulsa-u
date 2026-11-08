@@ -19,7 +19,13 @@ import {
 import type { BaseDeDatos, SQL } from '@impulsau/db';
 import type { mensajeria } from '@impulsau/contracts';
 import { z } from 'zod';
-import type { MensajesDesde, RepositorioMensajes, ResultadoEnviar } from '../puertos/puertos.js';
+import type {
+  Interlocutor,
+  MensajesDesde,
+  RepositorioMensajes,
+  ResultadoEnviar,
+  ResultadoLeido,
+} from '../puertos/puertos.js';
 
 type Consulta = Pick<BaseDeDatos, 'select'>;
 
@@ -220,6 +226,9 @@ export class DrizzleRepositorioMensajes implements RepositorioMensajes {
       where (${bloqueos.bloqueadorId} = ${usuarioId} and ${bloqueos.bloqueadoId} = ${otro})
          or (${bloqueos.bloqueadorId} = ${otro} and ${bloqueos.bloqueadoId} = ${usuarioId}))`;
 
+    const bloqueadaPorMi = sql<boolean>`exists(select 1 from ${bloqueos}
+      where ${bloqueos.bloqueadorId} = ${usuarioId} and ${bloqueos.bloqueadoId} = ${otro})`;
+
     const actividad = sql`coalesce(${conversaciones.ultimoMensajeEn}, ${conversaciones.creadoEn})`;
     const orden = sql<string>`${actividad}::text`;
 
@@ -245,6 +254,7 @@ export class DrizzleRepositorioMensajes implements RepositorioMensajes {
         noLeidos,
         leidoPorOtroHasta,
         bloqueada,
+        bloqueadaPorMi,
         orden,
       })
       .from(conversaciones)
@@ -277,9 +287,96 @@ export class DrizzleRepositorioMensajes implements RepositorioMensajes {
         noLeidos: fila.noLeidos,
         leidoPorOtroHasta: fila.leidoPorOtroHasta,
         bloqueada: fila.bloqueada,
+        bloqueadaPorMi: fila.bloqueadaPorMi,
       })),
       siguienteCursor: hayMas && ultima ? codificarCursor(ultima.orden, ultima.id) : null,
     };
+  }
+
+  async marcarLeido(
+    usuarioId: string,
+    conversacionId: string,
+    secuencia: number,
+  ): Promise<ResultadoLeido | null> {
+    return this.db.transaction(async (tx) => {
+      const [conversacion] = await tx
+        .select({
+          empresaId: conversaciones.empresaId,
+          talentoId: conversaciones.talentoId,
+          ultima: conversaciones.ultimaSecuencia,
+        })
+        .from(conversaciones)
+        .where(
+          and(
+            eq(conversaciones.id, conversacionId),
+            or(eq(conversaciones.empresaId, usuarioId), eq(conversaciones.talentoId, usuarioId)),
+          ),
+        )
+        .limit(1);
+      if (!conversacion) return null;
+
+      // No se puede haber leído más allá del último mensaje que existe.
+      const objetivo = Math.min(secuencia, conversacion.ultima);
+      const participantes = {
+        empresaId: conversacion.empresaId,
+        talentoId: conversacion.talentoId,
+      };
+      if (objetivo === 0) return { secuencia: 0, avanzo: false, ...participantes };
+
+      const [avanzada] = await tx
+        .insert(lecturas)
+        .values({ conversacionId, usuarioId, ultimaSecuenciaLeida: objetivo })
+        .onConflictDoUpdate({
+          target: [lecturas.conversacionId, lecturas.usuarioId],
+          set: { ultimaSecuenciaLeida: objetivo },
+          setWhere: sql`${lecturas.ultimaSecuenciaLeida} < ${objetivo}`,
+        })
+        .returning({ secuencia: lecturas.ultimaSecuenciaLeida });
+
+      if (avanzada) return { secuencia: avanzada.secuencia, avanzo: true, ...participantes };
+
+      const [actual] = await tx
+        .select({ secuencia: lecturas.ultimaSecuenciaLeida })
+        .from(lecturas)
+        .where(and(eq(lecturas.conversacionId, conversacionId), eq(lecturas.usuarioId, usuarioId)));
+      return { secuencia: actual?.secuencia ?? 0, avanzo: false, ...participantes };
+    });
+  }
+
+  async interlocutor(usuarioId: string, conversacionId: string): Promise<Interlocutor | null> {
+    const [conversacion] = await this.db
+      .select({ empresaId: conversaciones.empresaId, talentoId: conversaciones.talentoId })
+      .from(conversaciones)
+      .where(eq(conversaciones.id, conversacionId))
+      .limit(1);
+    if (!conversacion) return null;
+    if (conversacion.empresaId !== usuarioId && conversacion.talentoId !== usuarioId) return null;
+
+    const otroId =
+      conversacion.empresaId === usuarioId ? conversacion.talentoId : conversacion.empresaId;
+    const [bloqueo] = await this.db
+      .select({ bloqueadorId: bloqueos.bloqueadorId })
+      .from(bloqueos)
+      .where(this.entreEllos(usuarioId, otroId))
+      .limit(1);
+    return { otroId, bloqueada: bloqueo !== undefined };
+  }
+
+  async bloquear(bloqueadorId: string, bloqueadoId: string): Promise<'ok' | 'no_encontrado'> {
+    const [existe] = await this.db
+      .select({ id: usuarios.id })
+      .from(usuarios)
+      .where(eq(usuarios.id, bloqueadoId))
+      .limit(1);
+    if (!existe) return 'no_encontrado';
+    await this.db.insert(bloqueos).values({ bloqueadorId, bloqueadoId }).onConflictDoNothing();
+    return 'ok';
+  }
+
+  async desbloquear(bloqueadorId: string, bloqueadoId: string): Promise<void> {
+    await this.db
+      .delete(bloqueos)
+      .where(and(eq(bloqueos.bloqueadorId, bloqueadorId), eq(bloqueos.bloqueadoId, bloqueadoId)));
   }
 
   private async participa(

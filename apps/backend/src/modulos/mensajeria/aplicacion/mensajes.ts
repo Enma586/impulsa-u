@@ -105,3 +105,91 @@ export class ListarConversaciones {
     return ok(await this.mensajes.listar(actor.id, actor.rol, consulta));
   }
 }
+
+@Injectable()
+export class MarcarLeido {
+  constructor(
+    @Inject(REPOSITORIO_MENSAJES) private readonly mensajes: RepositorioMensajes,
+    @Inject(EMISOR_TIEMPO_REAL) private readonly emisor: EmisorTiempoReal,
+  ) {}
+
+  /** CU-34. Solo avanza; avisa a ambos participantes únicamente si la marca cambió. */
+  async ejecutar(
+    actor: ActorMensajeria,
+    conversacionId: string,
+    entrada: mensajeria.MarcarLeidoEntrada,
+  ): Promise<Resultado<mensajeria.EventoLecturaActualizada, ErrorMensajeriaCaso>> {
+    const leido = await this.mensajes.marcarLeido(actor.id, conversacionId, entrada.secuencia);
+    if (!leido) return fallo(NO_ENCONTRADO);
+
+    const evento = { conversacionId, usuarioId: actor.id, secuencia: leido.secuencia };
+    if (leido.avanzo) {
+      this.emisor.aUsuario(leido.empresaId, 'message:read', evento);
+      this.emisor.aUsuario(leido.talentoId, 'message:read', evento);
+    }
+    return ok(evento);
+  }
+}
+
+const ESCRIBIENDO_POR_VENTANA = 20;
+const VENTANA_ESCRIBIENDO_MS = 5_000;
+
+@Injectable()
+export class NotificarEscribiendo {
+  constructor(
+    @Inject(REPOSITORIO_MENSAJES) private readonly mensajes: RepositorioMensajes,
+    @Inject(LIMITADOR_TASA) private readonly limitador: LimitadorTasa,
+    @Inject(EMISOR_TIEMPO_REAL) private readonly emisor: EmisorTiempoReal,
+  ) {}
+
+  /**
+   * CU-34. Solo se avisa al otro participante (no a quien escribe) y no se guarda nada. Si excede el
+   * límite, el aviso se descarta en silencio: un "escribiendo" perdido no cuesta nada.
+   */
+  async ejecutar(actor: ActorMensajeria, conversacionId: string, activo: boolean): Promise<void> {
+    const limite = await this.limitador.intentar(
+      `escribiendo:${actor.id}`,
+      ESCRIBIENDO_POR_VENTANA,
+      VENTANA_ESCRIBIENDO_MS,
+    );
+    if (!limite.permitido) return;
+
+    const interlocutor = await this.mensajes.interlocutor(actor.id, conversacionId);
+    if (!interlocutor || interlocutor.bloqueada) return;
+    this.emisor.aUsuario(interlocutor.otroId, 'typing', {
+      conversacionId,
+      usuarioId: actor.id,
+      activo,
+    });
+  }
+}
+
+@Injectable()
+export class BloquearUsuario {
+  constructor(@Inject(REPOSITORIO_MENSAJES) private readonly mensajes: RepositorioMensajes) {}
+
+  /** CU-35. Bloquear impide escribir en la conversación y mostrar interés, en ambos sentidos. */
+  async ejecutar(
+    actor: ActorMensajeria,
+    bloqueadoId: string,
+  ): Promise<Resultado<true, ErrorMensajeriaCaso>> {
+    if (actor.id === bloqueadoId) {
+      return fallo({ tipo: 'invalido', campo: 'id', mensaje: 'No puedes bloquearte a ti mismo' });
+    }
+    const resultado = await this.mensajes.bloquear(actor.id, bloqueadoId);
+    return resultado === 'ok' ? ok(true) : fallo(NO_ENCONTRADO);
+  }
+}
+
+@Injectable()
+export class DesbloquearUsuario {
+  constructor(@Inject(REPOSITORIO_MENSAJES) private readonly mensajes: RepositorioMensajes) {}
+
+  async ejecutar(
+    actor: ActorMensajeria,
+    bloqueadoId: string,
+  ): Promise<Resultado<true, ErrorMensajeriaCaso>> {
+    await this.mensajes.desbloquear(actor.id, bloqueadoId);
+    return ok(true);
+  }
+}

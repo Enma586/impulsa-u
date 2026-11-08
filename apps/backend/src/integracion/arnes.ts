@@ -46,8 +46,8 @@ export interface Arnes {
     url: string,
     cuerpo?: object,
   ): ReturnType<NestFastifyApplication['inject']>;
-  /** Borra el contador de mensajes por ventana de estos usuarios (las pruebas escriben a ráfagas). */
-  reiniciarLimiteMensajes(...usuarios: string[]): Promise<void>;
+  /** Borra los contadores de mensajes y de "escribiendo" de estos usuarios (las pruebas escriben a ráfagas). */
+  reiniciarLimites(...usuarios: string[]): Promise<void>;
   cerrar(): Promise<void>;
 }
 
@@ -155,9 +155,11 @@ export async function crearArnes(
         },
         ...(cuerpo ? { payload: cuerpo } : {}),
       }),
-    reiniciarLimiteMensajes: async (...usuarios) => {
+    reiniciarLimites: async (...usuarios) => {
       if (usuarios.length === 0) return;
-      await app.get<Redis>(REDIS).del(...usuarios.map((id) => `tasa:mensaje:${id}`));
+      await app
+        .get<Redis>(REDIS)
+        .del(...usuarios.flatMap((id) => [`tasa:mensaje:${id}`, `tasa:escribiendo:${id}`]));
     },
     cerrar: async () => {
       await app.close();

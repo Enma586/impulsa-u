@@ -37,7 +37,7 @@ beforeEach(async () => {
   await arnes.base.sql`DELETE FROM lecturas`;
   await arnes.base.sql`DELETE FROM conversaciones`;
   await arnes.base.sql`DELETE FROM intereses`;
-  await arnes.reiniciarLimiteMensajes(empresa, ana, luis);
+  await arnes.reiniciarLimites(empresa, ana, luis);
   conversacion = await abrirConversacion();
 });
 
@@ -295,5 +295,85 @@ describe('apertura de la conversación en vivo', () => {
 
     expect(enEmpresa).toEqual(enAna);
     expect(enEmpresa[0]).toMatchObject({ conversacionId: nueva });
+  });
+});
+
+describe('CU-34 leído y escribiendo en vivo', () => {
+  it('message:read avisa a la otra parte con hasta dónde leyó', async () => {
+    const deEmpresa = await conectar(empresa);
+    const deAna = await conectar(ana);
+    await enviar(deEmpresa, 'Hola');
+    const enEmpresa = escuchar(deEmpresa, 'message:read');
+
+    deAna.emit('message:read', { conversacionId: conversacion, secuencia: 1 });
+    await esperarHasta(() => enEmpresa.length > 0);
+
+    expect(enEmpresa).toEqual([{ conversacionId: conversacion, usuarioId: ana, secuencia: 1 }]);
+  });
+
+  it('message:read con datos basura o de un intruso no hace nada ni rompe el socket', async () => {
+    const deEmpresa = await conectar(empresa);
+    const intruso = await conectar(luis);
+    await enviar(deEmpresa, 'Hola');
+    const enEmpresa = escuchar(deEmpresa, 'message:read');
+
+    intruso.emit('message:read', { conversacionId: conversacion, secuencia: 1 });
+    deEmpresa.emit('message:read', { conversacionId: 'no-es-uuid', secuencia: 'x' });
+    deEmpresa.emit('message:read');
+    await pausa(200);
+
+    expect(enEmpresa).toHaveLength(0);
+    expect((await enviar(deEmpresa, 'Sigo vivo')).ok).toBe(true);
+  });
+
+  it('typing llega solo a la otra parte y distingue empezar de parar', async () => {
+    const deEmpresa = await conectar(empresa);
+    const deAna = await conectar(ana);
+    const enAna = escuchar(deAna, 'typing');
+    const enEmpresa = escuchar(deEmpresa, 'typing');
+
+    deEmpresa.emit('typing:start', { conversacionId: conversacion });
+    await esperarHasta(() => enAna.length > 0);
+    deEmpresa.emit('typing:stop', { conversacionId: conversacion });
+    await esperarHasta(() => enAna.length > 1);
+    await pausa(100);
+
+    expect(enAna).toEqual([
+      { conversacionId: conversacion, usuarioId: empresa, activo: true },
+      { conversacionId: conversacion, usuarioId: empresa, activo: false },
+    ]);
+    expect(enEmpresa).toHaveLength(0);
+  });
+
+  it('typing de quien no participa, o con un bloqueo, no se entrega', async () => {
+    const deEmpresa = await conectar(empresa);
+    const intruso = await conectar(luis);
+    const deAna = await conectar(ana);
+    const enAna = escuchar(deAna, 'typing');
+
+    intruso.emit('typing:start', { conversacionId: conversacion });
+    await arnes.base
+      .sql`INSERT INTO bloqueos (bloqueador_id, bloqueado_id) VALUES (${ana}, ${empresa})`;
+    try {
+      deEmpresa.emit('typing:start', { conversacionId: conversacion });
+      await pausa(250);
+    } finally {
+      await arnes.base.sql`DELETE FROM bloqueos`;
+    }
+
+    expect(enAna).toHaveLength(0);
+  });
+
+  it('descarta en silencio los typing que pasan de 20 en 5 segundos', async () => {
+    const deEmpresa = await conectar(empresa);
+    const deAna = await conectar(ana);
+    const enAna = escuchar(deAna, 'typing');
+
+    for (let i = 0; i < 30; i++) deEmpresa.emit('typing:start', { conversacionId: conversacion });
+    await pausa(600);
+
+    expect(enAna.length).toBeLessThanOrEqual(20);
+    expect(enAna.length).toBeGreaterThan(0);
+    expect((await enviar(deEmpresa, 'Los mensajes no se ven afectados')).ok).toBe(true);
   });
 });
