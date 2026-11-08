@@ -42,6 +42,7 @@ export class GuardAutenticacion implements CanActivate {
       case 'pendiente_verificacion':
       case 'activo':
         solicitud.usuario = usuario;
+        solicitud.sesionId = verificacion.valor.sesionId;
         return true;
       case 'suspendido':
         throw new ErrorHttpApi(403, 'cuenta_suspendida', 'Tu cuenta está suspendida');

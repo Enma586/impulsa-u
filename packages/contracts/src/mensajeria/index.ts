@@ -127,8 +127,11 @@ export const EventoInteresAceptado = z.object({
 });
 export type EventoInteresAceptado = z.infer<typeof EventoInteresAceptado>;
 
-/** Mapa tipado de eventos cliente → servidor. El segundo parámetro es el `ack`. */
-export interface EventosClienteAServidor {
+/**
+ * Mapa tipado de eventos cliente → servidor. El segundo parámetro es el `ack`.
+ * Es un `type` y no una `interface` porque Socket.IO exige una firma de índice.
+ */
+export type EventosClienteAServidor = {
   'message:send': (datos: EventoEnviarMensaje, ack: (resultado: ResultadoEnvio) => void) => void;
   'message:read': (datos: EventoMarcarLeido) => void;
   'typing:start': (datos: EventoEscribiendo) => void;
@@ -137,12 +140,12 @@ export interface EventosClienteAServidor {
     datos: EventoSincronizar,
     ack: (resultado: ResultadoSincronizacion) => void,
   ) => void;
-}
+};
 
 /** Mapa tipado de eventos servidor → cliente. */
-export interface EventosServidorACliente {
+export type EventosServidorACliente = {
   'message:new': (mensaje: Mensaje) => void;
   'message:read': (datos: EventoLecturaActualizada) => void;
   typing: (datos: EventoEscribiendoActualizado) => void;
   'interest:accepted': (datos: EventoInteresAceptado) => void;
-}
+};

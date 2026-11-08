@@ -15,6 +15,7 @@ import { ConexionBaseDatosModule } from './compartido/infraestructura/conexion-b
 import { ConexionRedisModule } from './compartido/infraestructura/conexion-redis.module.js';
 import { ConfiguracionModule } from './compartido/infraestructura/configuracion.module.js';
 import { RegistroModule } from './compartido/infraestructura/logger.module.js';
+import { TiempoRealModule } from './compartido/infraestructura/tiempo-real/tiempo-real.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RegistroModule } from './compartido/infraestructura/logger.module.js';
     RegistroModule,
     ConexionBaseDatosModule,
     ConexionRedisModule,
+    TiempoRealModule,
     CompartidoHttpModule,
     AutenticacionModule,
     AuthModule,

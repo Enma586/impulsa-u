@@ -5,6 +5,7 @@ import { JoseVerificadorToken } from './jose-verificador-token.js';
 
 const EMISOR = 'https://proyecto.supabase.co/auth/v1';
 const USUARIO = '0b6c1f0e-8f3b-4a52-9d57-0d7f6a3d9c11';
+const SESION = '5d0e2d0c-4a8e-4b8b-9a0e-6c2f6f1f7a10';
 
 interface OpcionesToken {
   sub?: string;
@@ -12,13 +13,14 @@ interface OpcionesToken {
   audiencia?: string;
   expira?: string;
   clave?: CryptoKey;
+  sesion?: string;
 }
 
 let verificador: JoseVerificadorToken;
 let privada: CryptoKey;
 
 function firmar(opciones: OpcionesToken = {}): Promise<string> {
-  return new SignJWT({})
+  return new SignJWT(opciones.sesion ? { session_id: opciones.sesion } : {})
     .setProtectedHeader({ alg: 'ES256', kid: 'clave-1' })
     .setSubject(opciones.sub ?? USUARIO)
     .setIssuer(opciones.emisor ?? EMISOR)
@@ -41,7 +43,12 @@ beforeAll(async () => {
 describe('JoseVerificadorToken', () => {
   it('acepta un token válido y devuelve el id del usuario', async () => {
     const resultado = await verificador.verificar(await firmar());
-    expect(resultado).toEqual({ ok: true, valor: { usuarioId: USUARIO } });
+    expect(resultado).toEqual({ ok: true, valor: { usuarioId: USUARIO, sesionId: null } });
+  });
+
+  it('devuelve la sesión cuando el token declara session_id', async () => {
+    const resultado = await verificador.verificar(await firmar({ sesion: SESION }));
+    expect(resultado).toEqual({ ok: true, valor: { usuarioId: USUARIO, sesionId: SESION } });
   });
 
   it('rechaza un token vencido', async () => {
