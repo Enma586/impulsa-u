@@ -5,6 +5,7 @@ import { ErrorHttpApi } from '../../../compartido/http/error-api.js';
 import { IdempotenciaInterceptor } from '../../../compartido/http/idempotencia.interceptor.js';
 import { LimiteTasa } from '../../../compartido/http/limite-tasa.guard.js';
 import { Publica } from '../../../compartido/http/publica.js';
+import { SesionActual } from '../../../compartido/http/sesion-actual.decorator.js';
 import { TokenActual } from '../../../compartido/http/token-actual.decorator.js';
 import { UsuarioActual } from '../../../compartido/http/usuario-actual.decorator.js';
 import { ZodValidationPipe } from '../../../compartido/http/zod-validation.pipe.js';
@@ -131,9 +132,14 @@ export class AuthController {
   @Post('logout')
   async salir(
     @TokenActual() token: string,
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @SesionActual() sesionId: string | null,
     @Body(new ZodValidationPipe(auth.CerrarSesionEntrada)) entrada: auth.CerrarSesionEntrada,
   ): Promise<void> {
-    const resultado = await this.cerrarSesion.ejecutar(token, entrada);
+    const resultado = await this.cerrarSesion.ejecutar(token, entrada, {
+      usuarioId: usuario.id,
+      sesionId,
+    });
     if (!resultado.ok) throw aErrorSesion(resultado.error);
   }
 

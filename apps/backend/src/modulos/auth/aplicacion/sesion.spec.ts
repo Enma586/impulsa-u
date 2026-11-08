@@ -9,6 +9,7 @@ import type {
   TokensSesion,
 } from '../puertos/proveedor-identidad.js';
 import type { RepositorioUsuarios } from '../puertos/repositorio-usuarios.js';
+import type { CierreConexiones } from '../../../compartido/dominio/tiempo-real.js';
 import { CerrarSesion, IniciarSesion, RenovarSesion } from './sesion.js';
 
 const ID = '0b6c1f0e-8f3b-4a52-9d57-0d7f6a3d9c11';
@@ -128,16 +129,51 @@ describe('CU-07 renovar la sesión', () => {
 });
 
 describe('CU-06 cerrar sesión', () => {
+  const quien = { usuarioId: 'usuario-1', sesionId: 'sesion-1' };
+  let socketsCerrados: string[];
+  const conexiones: CierreConexiones = {
+    cerrarSesion: (id) => socketsCerrados.push(`sesion:${id}`),
+    cerrarUsuario: (id) => socketsCerrados.push(`usuario:${id}`),
+  };
+
+  beforeEach(() => {
+    socketsCerrados = [];
+  });
+
   it('CA-06.1 cierra solo este dispositivo o todos según el alcance', async () => {
-    const caso = new CerrarSesion(identidad);
-    await caso.ejecutar('acceso', { alcance: 'local' });
-    await caso.ejecutar('acceso', { alcance: 'global' });
+    const caso = new CerrarSesion(identidad, conexiones);
+    await caso.ejecutar('acceso', { alcance: 'local' }, quien);
+    await caso.ejecutar('acceso', { alcance: 'global' }, quien);
     expect(alcances).toEqual(['local', 'global']);
   });
 
-  it('CA-06.2 informa si el proveedor no pudo revocar la sesión', async () => {
+  it('CA-06.3 al cerrar este dispositivo cierra solo el socket de esa sesión', async () => {
+    await new CerrarSesion(identidad, conexiones).ejecutar('acceso', { alcance: 'local' }, quien);
+    expect(socketsCerrados).toEqual(['sesion:sesion-1']);
+  });
+
+  it('CA-06.3 al cerrar todos los dispositivos cierra los sockets del usuario', async () => {
+    await new CerrarSesion(identidad, conexiones).ejecutar('acceso', { alcance: 'global' }, quien);
+    expect(socketsCerrados).toEqual(['usuario:usuario-1']);
+  });
+
+  it('CA-06.3 sin sesión en el token, cierra los sockets de todos los dispositivos', async () => {
+    await new CerrarSesion(identidad, conexiones).ejecutar(
+      'acceso',
+      { alcance: 'local' },
+      { usuarioId: 'usuario-1', sesionId: null },
+    );
+    expect(socketsCerrados).toEqual(['usuario:usuario-1']);
+  });
+
+  it('CA-06.2 informa si el proveedor no pudo revocar la sesión y no cierra sockets', async () => {
     cierre = fallo('no_disponible');
-    const resultado = await new CerrarSesion(identidad).ejecutar('acceso', { alcance: 'global' });
+    const resultado = await new CerrarSesion(identidad, conexiones).ejecutar(
+      'acceso',
+      { alcance: 'global' },
+      quien,
+    );
     expect(resultado).toEqual(fallo({ tipo: 'proveedor_no_disponible' }));
+    expect(socketsCerrados).toEqual([]);
   });
 });

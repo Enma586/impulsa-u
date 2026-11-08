@@ -13,6 +13,7 @@ import type {
   InicioIdempotencia,
 } from '../../../compartido/dominio/idempotencia.js';
 import { LIMITADOR_TASA } from '../../../compartido/dominio/limite-tasa.js';
+import { CIERRE_CONEXIONES } from '../../../compartido/dominio/tiempo-real.js';
 import { CompartidoHttpModule } from '../../../compartido/http/compartido-http.module.js';
 import { RegistrarEmpresa } from '../aplicacion/registrar-empresa.js';
 import { RegistrarTalento } from '../aplicacion/registrar-talento.js';
@@ -118,6 +119,10 @@ class AlmacenEnMemoria implements AlmacenIdempotencia {
             sinLimite ? { permitido: true } : { permitido: false, reintentarEnMs: 30_000 },
           ),
       },
+    },
+    {
+      provide: CIERRE_CONEXIONES,
+      useValue: { cerrarSesion: () => undefined, cerrarUsuario: () => undefined },
     },
     { provide: RELOJ, useValue: { ahora: () => new Date('2026-10-10T12:00:00Z') } },
     { provide: ALMACEN_IDEMPOTENCIA, useValue: new AlmacenEnMemoria() },
