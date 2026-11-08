@@ -2,8 +2,13 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnGatewayConnection } from '@nestjs/websockets';
 import type { mensajeria } from '@impulsau/contracts';
 import type { CierreConexiones, EmisorTiempoReal } from '../../dominio/tiempo-real.js';
-import { salaConversacion, salaSesion, salaUsuario } from './tipos.js';
-import type { ServidorSockets, SocketCliente } from './tipos.js';
+import { salaSesion, salaUsuario } from './tipos.js';
+import type {
+  ManejadorSocket,
+  RegistroManejadoresSocket,
+  ServidorSockets,
+  SocketCliente,
+} from './tipos.js';
 
 type Evento = keyof mensajeria.EventosServidorACliente;
 type DatosEvento<E extends Evento> = Parameters<mensajeria.EventosServidorACliente[E]>;
@@ -13,13 +18,22 @@ type DatosEvento<E extends Evento> = Parameters<mensajeria.EventosServidorAClien
  * `sesion:{id}`), cierra conexiones por sesión o usuario y emite eventos, todo en todas las réplicas.
  */
 @WebSocketGateway()
-export class GatewayConexion implements OnGatewayConnection, CierreConexiones, EmisorTiempoReal {
+export class GatewayConexion
+  implements OnGatewayConnection, CierreConexiones, EmisorTiempoReal, RegistroManejadoresSocket
+{
   @WebSocketServer()
   private servidor: ServidorSockets | undefined;
+
+  private readonly manejadores: ManejadorSocket[] = [];
+
+  registrar(manejador: ManejadorSocket): void {
+    this.manejadores.push(manejador);
+  }
 
   handleConnection(socket: SocketCliente): void {
     void socket.join(salaUsuario(socket.data.usuarioId));
     if (socket.data.sesionId) void socket.join(salaSesion(socket.data.sesionId));
+    for (const manejador of this.manejadores) manejador.alConectar(socket);
   }
 
   cerrarSesion(sesionId: string): void {
@@ -32,13 +46,5 @@ export class GatewayConexion implements OnGatewayConnection, CierreConexiones, E
 
   aUsuario<E extends Evento>(usuarioId: string, evento: E, ...datos: DatosEvento<E>): void {
     this.servidor?.to(salaUsuario(usuarioId)).emit(evento, ...datos);
-  }
-
-  aConversacion<E extends Evento>(
-    conversacionId: string,
-    evento: E,
-    ...datos: DatosEvento<E>
-  ): void {
-    this.servidor?.to(salaConversacion(conversacionId)).emit(evento, ...datos);
   }
 }
