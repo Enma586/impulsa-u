@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ArchivosModule } from './modulos/archivos/index.js';
 import { AuthHttpModule, AuthModule } from './modulos/auth/index.js';
 import { CatalogosModule } from './modulos/catalogos/index.js';
+import { ConexionesModule } from './modulos/conexiones/index.js';
 import { InteraccionesModule } from './modulos/interacciones/index.js';
 import { PerfilesModule } from './modulos/perfiles/index.js';
 import { ProyectosModule } from './modulos/proyectos/index.js';
@@ -29,6 +30,7 @@ import { TiempoRealModule } from './compartido/infraestructura/tiempo-real/tiemp
     AuthModule,
     AuthHttpModule,
     CatalogosModule,
+    ConexionesModule,
     PerfilesModule,
     ArchivosModule,
     ProyectosModule,

@@ -27,3 +27,5 @@ export type SocketCliente = Socket<
 
 export const salaUsuario = (usuarioId: string): string => `user:${usuarioId}`;
 export const salaSesion = (sesionId: string): string => `sesion:${sesionId}`;
+export const salaConversacion = (conversacionId: string): string =>
+  `conversation:${conversacionId}`;

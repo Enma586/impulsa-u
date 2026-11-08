@@ -12,8 +12,8 @@ import type {
   UsuarioAutenticado,
   VerificadorToken,
 } from '../../dominio/autenticacion.js';
-import { CIERRE_CONEXIONES } from '../../dominio/tiempo-real.js';
-import type { CierreConexiones } from '../../dominio/tiempo-real.js';
+import { CIERRE_CONEXIONES, EMISOR_TIEMPO_REAL } from '../../dominio/tiempo-real.js';
+import type { CierreConexiones, EmisorTiempoReal } from '../../dominio/tiempo-real.js';
 import { AdaptadorSocketRedis } from './adaptador-socket-redis.js';
 import { TiempoRealModule } from './tiempo-real.module.js';
 
@@ -204,5 +204,48 @@ describe('CA-07.4 el socket se reconecta con el token nuevo', () => {
     cierre(replicaA).cerrarSesion(sesionVieja);
     await pausa(150);
     expect(socket.connected).toBe(true);
+  });
+});
+
+describe('emisión de eventos a un usuario', () => {
+  it('interest:accepted emitido en una réplica llega al socket conectado en otra', async () => {
+    const usuario = randomUUID();
+    const enB = conectar(replicaB.url, () => `${usuario}|${randomUUID()}`);
+    await esperar(enB, 'connect');
+    const recibido = new Promise<unknown>((resolver) => {
+      enB.once('interest:accepted', resolver);
+    });
+
+    const datos = { interesId: randomUUID(), conversacionId: randomUUID() };
+    replicaA.app
+      .get<EmisorTiempoReal>(EMISOR_TIEMPO_REAL)
+      .aUsuario(usuario, 'interest:accepted', datos);
+
+    expect(await recibido).toEqual(datos);
+  });
+
+  it('no llega a otro usuario', async () => {
+    const destinatario = randomUUID();
+    const ajeno = conectar(replicaA.url, () => `${randomUUID()}|${randomUUID()}`);
+    const propio = conectar(replicaA.url, () => `${destinatario}|${randomUUID()}`);
+    await Promise.all([esperar(ajeno, 'connect'), esperar(propio, 'connect')]);
+    let ajenoRecibio = false;
+    ajeno.on('interest:accepted', () => {
+      ajenoRecibio = true;
+    });
+    const recibido = new Promise<unknown>((resolver) => {
+      propio.once('interest:accepted', resolver);
+    });
+
+    replicaA.app
+      .get<EmisorTiempoReal>(EMISOR_TIEMPO_REAL)
+      .aUsuario(destinatario, 'interest:accepted', {
+        interesId: randomUUID(),
+        conversacionId: randomUUID(),
+      });
+    await recibido;
+    await pausa(150);
+
+    expect(ajenoRecibio).toBe(false);
   });
 });
