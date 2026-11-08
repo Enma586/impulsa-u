@@ -75,6 +75,13 @@ export const estadoPostulacion = pgEnum('estado_postulacion', [
   'descartada',
 ]);
 
+export const direccionInteres = pgEnum('direccion_interes', [
+  'empresa_a_talento',
+  'talento_a_empresa',
+]);
+
+export const estadoInteres = pgEnum('estado_interes', ['pendiente', 'aceptado', 'declinado']);
+
 export const motivoDescarte = pgEnum('motivo_descarte', [
   'falta_habilidad_tecnica',
   'perfil_incompleto',
