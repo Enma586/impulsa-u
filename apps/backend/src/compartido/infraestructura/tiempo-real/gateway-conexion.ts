@@ -1,15 +1,19 @@
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnGatewayConnection } from '@nestjs/websockets';
-import type { CierreConexiones } from '../../dominio/tiempo-real.js';
-import { salaSesion, salaUsuario } from './tipos.js';
+import type { mensajeria } from '@impulsau/contracts';
+import type { CierreConexiones, EmisorTiempoReal } from '../../dominio/tiempo-real.js';
+import { salaConversacion, salaSesion, salaUsuario } from './tipos.js';
 import type { ServidorSockets, SocketCliente } from './tipos.js';
+
+type Evento = keyof mensajeria.EventosServidorACliente;
+type DatosEvento<E extends Evento> = Parameters<mensajeria.EventosServidorACliente[E]>;
 
 /**
  * Punto de entrada de las conexiones en vivo. Mete cada socket en sus salas (`user:{id}` y
- * `sesion:{id}`) y cierra conexiones por sesión o usuario en todas las réplicas.
+ * `sesion:{id}`), cierra conexiones por sesión o usuario y emite eventos, todo en todas las réplicas.
  */
 @WebSocketGateway()
-export class GatewayConexion implements OnGatewayConnection, CierreConexiones {
+export class GatewayConexion implements OnGatewayConnection, CierreConexiones, EmisorTiempoReal {
   @WebSocketServer()
   private servidor: ServidorSockets | undefined;
 
@@ -24,5 +28,17 @@ export class GatewayConexion implements OnGatewayConnection, CierreConexiones {
 
   cerrarUsuario(usuarioId: string): void {
     this.servidor?.in(salaUsuario(usuarioId)).disconnectSockets(true);
+  }
+
+  aUsuario<E extends Evento>(usuarioId: string, evento: E, ...datos: DatosEvento<E>): void {
+    this.servidor?.to(salaUsuario(usuarioId)).emit(evento, ...datos);
+  }
+
+  aConversacion<E extends Evento>(
+    conversacionId: string,
+    evento: E,
+    ...datos: DatosEvento<E>
+  ): void {
+    this.servidor?.to(salaConversacion(conversacionId)).emit(evento, ...datos);
   }
 }
