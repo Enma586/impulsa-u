@@ -18,6 +18,19 @@ export { Imagen } from './datos/Imagen';
 export { Tarjeta } from './superficies/Tarjeta';
 export { Modal } from './superficies/Modal';
 export { Pestanas, type Pestana } from './navegacion/Pestanas';
+export {
+  PanelDividido,
+  ItemConversacion,
+  EncabezadoConversacion,
+  BurbujaMensaje,
+  SeparadorDia,
+  HiloMensajes,
+  Escribiendo,
+  AvisoConexion,
+  CajaMensaje,
+  VacioDelPanel,
+  type EstadoMensajeVista,
+} from './mensajeria/Chat';
 export { Cargando, Esqueleto } from './estados/Esqueleto';
 export { AvisoError } from './estados/AvisoError';
 export {
@@ -30,6 +43,7 @@ export {
   IconoCasa,
   IconoCorazon,
   IconoMaletin,
+  IconoMensaje,
   IconoPapeles,
   IconoSalir,
   IconoUsuario,
