@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import type { auth } from '@impulsau/contracts';
+import { CIERRE_CONEXIONES } from '../../../compartido/dominio/tiempo-real.js';
+import type { CierreConexiones } from '../../../compartido/dominio/tiempo-real.js';
 import { fallo, ok } from '../../../compartido/dominio/resultado.js';
 import type { Resultado } from '../../../compartido/dominio/resultado.js';
 import { LIMITADOR_TASA } from '../../../compartido/dominio/limite-tasa.js';
@@ -72,15 +74,28 @@ export class RenovarSesion {
 
 @Injectable()
 export class CerrarSesion {
-  constructor(@Inject(PROVEEDOR_IDENTIDAD) private readonly identidad: ProveedorIdentidad) {}
+  constructor(
+    @Inject(PROVEEDOR_IDENTIDAD) private readonly identidad: ProveedorIdentidad,
+    @Inject(CIERRE_CONEXIONES) private readonly conexiones: CierreConexiones,
+  ) {}
 
-  /** CU-06: en este dispositivo (`local`) o en todos (`global`). */
+  /**
+   * CU-06: en este dispositivo (`local`) o en todos (`global`). Cierra también los sockets del chat
+   * (CA-06.3); si el token no declara su sesión, cierra los de todos los dispositivos del usuario.
+   */
   async ejecutar(
     accessToken: string,
     entrada: auth.CerrarSesionEntrada,
+    quien: { usuarioId: string; sesionId: string | null },
   ): Promise<Resultado<true, ErrorSesion>> {
     const resultado = await this.identidad.cerrarSesion(accessToken, entrada.alcance);
-    return resultado.ok ? ok(true) : fallo({ tipo: 'proveedor_no_disponible' });
+    if (!resultado.ok) return fallo({ tipo: 'proveedor_no_disponible' });
+    if (entrada.alcance === 'local' && quien.sesionId) {
+      this.conexiones.cerrarSesion(quien.sesionId);
+    } else {
+      this.conexiones.cerrarUsuario(quien.usuarioId);
+    }
+    return ok(true);
   }
 }
 

@@ -73,7 +73,8 @@ function renovar(): Promise<string | null> {
   return renovacion;
 }
 
-async function tokenVigente(): Promise<string | null> {
+/** Token de acceso listo para usar; lo renueva si está por vencer. También lo usa el socket. */
+export async function tokenVigente(): Promise<string | null> {
   const actual = almacenSesion.obtener();
   if (!actual) return null;
   return actual.expiraEn * 1000 - Date.now() > MARGEN_RENOVACION_MS

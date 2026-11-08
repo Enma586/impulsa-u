@@ -40,6 +40,8 @@ export const variante = styleVariants({
 
 export const tamano = styleVariants({
   normal: {},
+  /** Más discreto, pero conserva el área táctil mínima. */
+  pequeno: { fontSize: tamanosTexto[13], padding: '0 12px' },
   grande: { minHeight: '52px', fontSize: tamanosTexto[16] },
 });
 

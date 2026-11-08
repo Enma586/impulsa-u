@@ -29,6 +29,13 @@
       "when": 1793150555520,
       "tag": "0003_nucleo_demo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794098352243,
+      "tag": "0004_mensajeria",
+      "breakpoints": true
     }
   ]
 }

@@ -95,6 +95,14 @@ export function IconoCorazon({
   );
 }
 
+export function IconoMensaje({ tamano = 20 }: { tamano?: number }) {
+  return (
+    <Icono tamano={tamano}>
+      <path d="M4 5h16v11H9l-5 4z" />
+    </Icono>
+  );
+}
+
 export function IconoCasa({ tamano = 20 }: { tamano?: number }) {
   return (
     <Icono tamano={tamano}>

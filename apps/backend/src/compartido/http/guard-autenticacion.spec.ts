@@ -34,7 +34,9 @@ class PrivadaController {
 
 const verificadorSimulado: VerificadorToken = {
   verificar: (token) =>
-    Promise.resolve(token === 'valido' ? ok({ usuarioId: ID }) : fallo('token_invalido')),
+    Promise.resolve(
+      token === 'valido' ? ok({ usuarioId: ID, sesionId: null }) : fallo('token_invalido'),
+    ),
 };
 
 let usuarioEnBase: UsuarioAutenticado | null = null;

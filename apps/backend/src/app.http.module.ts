@@ -3,7 +3,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { ArchivosModule } from './modulos/archivos/index.js';
 import { AuthHttpModule, AuthModule } from './modulos/auth/index.js';
 import { CatalogosModule } from './modulos/catalogos/index.js';
+import { ConexionesModule } from './modulos/conexiones/index.js';
 import { InteraccionesModule } from './modulos/interacciones/index.js';
+import { MensajeriaModule } from './modulos/mensajeria/index.js';
 import { PerfilesModule } from './modulos/perfiles/index.js';
 import { ProyectosModule } from './modulos/proyectos/index.js';
 import { VacantesModule } from './modulos/vacantes/index.js';
@@ -15,6 +17,7 @@ import { ConexionBaseDatosModule } from './compartido/infraestructura/conexion-b
 import { ConexionRedisModule } from './compartido/infraestructura/conexion-redis.module.js';
 import { ConfiguracionModule } from './compartido/infraestructura/configuracion.module.js';
 import { RegistroModule } from './compartido/infraestructura/logger.module.js';
+import { TiempoRealModule } from './compartido/infraestructura/tiempo-real/tiempo-real.module.js';
 
 @Module({
   imports: [
@@ -22,15 +25,18 @@ import { RegistroModule } from './compartido/infraestructura/logger.module.js';
     RegistroModule,
     ConexionBaseDatosModule,
     ConexionRedisModule,
+    TiempoRealModule,
     CompartidoHttpModule,
     AutenticacionModule,
     AuthModule,
     AuthHttpModule,
     CatalogosModule,
+    ConexionesModule,
     PerfilesModule,
     ArchivosModule,
     ProyectosModule,
     InteraccionesModule,
+    MensajeriaModule,
     VacantesModule,
   ],
   providers: [

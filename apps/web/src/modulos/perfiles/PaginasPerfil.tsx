@@ -19,6 +19,7 @@ import { Carga, EsqueletoLista, EstadoVacio } from '../../compartido/Estados';
 import { fechaLegible, nombresDepartamento } from '../../compartido/etiquetas';
 import { cerrarSesion } from '../../sesion/acciones';
 import { useUsuario } from '../../sesion/useSesion';
+import { BotonInteres } from '../mensajeria/BotonInteres';
 import { usePerfilEmpresa, usePerfilTalento } from './consultas';
 
 const nombresEnlace = {
@@ -63,6 +64,10 @@ function VistaTalento({ id }: { id: string }) {
                 Editar perfil
               </EnlaceBoton>
             </Fila>
+          )}
+
+          {usuario.rol === 'empresa' && perfil.id !== usuario.id && (
+            <BotonInteres destinoId={perfil.id} />
           )}
 
           {perfil.bio && <Texto>{perfil.bio}</Texto>}
@@ -156,6 +161,10 @@ function VistaEmpresa({ id }: { id: string }) {
                 Editar perfil
               </EnlaceBoton>
             </Fila>
+          )}
+
+          {usuario.rol === 'talento' && perfil.id !== usuario.id && (
+            <BotonInteres destinoId={perfil.id} />
           )}
 
           {perfil.descripcion && <Texto>{perfil.descripcion}</Texto>}

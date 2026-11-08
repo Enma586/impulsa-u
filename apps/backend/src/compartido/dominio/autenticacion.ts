@@ -10,9 +10,15 @@ export interface UsuarioAutenticado {
 
 export const VERIFICADOR_TOKEN = Symbol('VerificadorToken');
 
+/** Quién es el dueño del token y a qué sesión del proveedor pertenece (`null` si el token no la declara). */
+export interface IdentidadToken {
+  usuarioId: string;
+  sesionId: string | null;
+}
+
 /** Valida el token de acceso del proveedor de identidad (firma, expiración, emisor y audiencia). */
 export interface VerificadorToken {
-  verificar(token: string): Promise<Resultado<{ usuarioId: string }, 'token_invalido'>>;
+  verificar(token: string): Promise<Resultado<IdentidadToken, 'token_invalido'>>;
 }
 
 export const BUSCADOR_USUARIO = Symbol('BuscadorUsuario');
