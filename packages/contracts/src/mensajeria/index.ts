@@ -23,7 +23,10 @@ export const ConversacionResumen = z.object({
   noLeidos: z.number().int().min(0),
   /** Hasta qué secuencia leyó el otro participante (para mostrar "leído"). */
   leidoPorOtroHasta: z.number().int().min(0),
+  /** Hay un bloqueo entre las partes, de cualquiera de los dos lados: nadie puede escribir. */
   bloqueada: z.boolean(),
+  /** El bloqueo lo puso quien consulta, así que puede deshacerlo. */
+  bloqueadaPorMi: z.boolean(),
 });
 export type ConversacionResumen = z.infer<typeof ConversacionResumen>;
 

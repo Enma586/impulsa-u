@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { mensajeria } from '@impulsau/contracts';
 import type { UsuarioAutenticado } from '../../../compartido/dominio/autenticacion.js';
 import { ErrorHttpApi } from '../../../compartido/http/error-api.js';
@@ -6,7 +17,14 @@ import { ParamUuid } from '../../../compartido/http/param-uuid.js';
 import { aErrorHttp } from '../../../compartido/http/traducir-error.js';
 import { UsuarioActual } from '../../../compartido/http/usuario-actual.decorator.js';
 import { ZodValidationPipe } from '../../../compartido/http/zod-validation.pipe.js';
-import { EnviarMensaje, ListarConversaciones, ObtenerHistorial } from '../aplicacion/mensajes.js';
+import {
+  BloquearUsuario,
+  DesbloquearUsuario,
+  EnviarMensaje,
+  ListarConversaciones,
+  MarcarLeido,
+  ObtenerHistorial,
+} from '../aplicacion/mensajes.js';
 import { comoActor } from '../dominio/actor.js';
 import type { ActorMensajeria, ErrorMensajeriaCaso } from '../dominio/errores.js';
 
@@ -50,6 +68,9 @@ export class MensajeriaController {
     @Inject(ListarConversaciones) private readonly conversaciones: ListarConversaciones,
     @Inject(ObtenerHistorial) private readonly historial: ObtenerHistorial,
     @Inject(EnviarMensaje) private readonly enviar: EnviarMensaje,
+    @Inject(MarcarLeido) private readonly leer: MarcarLeido,
+    @Inject(BloquearUsuario) private readonly bloquear: BloquearUsuario,
+    @Inject(DesbloquearUsuario) private readonly desbloquear: DesbloquearUsuario,
   ) {}
 
   @Get('conversaciones')
@@ -88,5 +109,39 @@ export class MensajeriaController {
     const resultado = await this.enviar.ejecutar(actorDe(usuario), id, entrada);
     if (resultado.ok) return resultado.valor;
     throw aErrorMensajeria(resultado.error);
+  }
+
+  /** CU-34: marca como leído hasta `secuencia`. Solo avanza; responde hasta dónde quedó. */
+  @Put('conversaciones/:id/lectura')
+  async marcarLeido(
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @Param('id', ParamUuid) id: string,
+    @Body(new ZodValidationPipe(mensajeria.MarcarLeidoEntrada))
+    entrada: mensajeria.MarcarLeidoEntrada,
+  ): Promise<mensajeria.EventoLecturaActualizada> {
+    const resultado = await this.leer.ejecutar(actorDe(usuario), id, entrada);
+    if (resultado.ok) return resultado.valor;
+    throw aErrorMensajeria(resultado.error);
+  }
+
+  /** CU-35: bloquea a un usuario. Idempotente. */
+  @HttpCode(204)
+  @Put('usuarios/:id/bloqueo')
+  async bloquearUsuario(
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @Param('id', ParamUuid) id: string,
+  ): Promise<void> {
+    const resultado = await this.bloquear.ejecutar(actorDe(usuario), id);
+    if (!resultado.ok) throw aErrorMensajeria(resultado.error);
+  }
+
+  @HttpCode(204)
+  @Delete('usuarios/:id/bloqueo')
+  async desbloquearUsuario(
+    @UsuarioActual() usuario: UsuarioAutenticado,
+    @Param('id', ParamUuid) id: string,
+  ): Promise<void> {
+    const resultado = await this.desbloquear.ejecutar(actorDe(usuario), id);
+    if (!resultado.ok) throw aErrorMensajeria(resultado.error);
   }
 }

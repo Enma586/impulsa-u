@@ -21,6 +21,21 @@ export interface MensajesDesde {
   hayMas: boolean;
 }
 
+export interface ResultadoLeido {
+  /** Hasta dónde quedó leída la conversación para quien marcó (nunca retrocede). */
+  secuencia: number;
+  /** `false` si la marca ya estaba igual o más adelante y no cambió nada. */
+  avanzo: boolean;
+  empresaId: string;
+  talentoId: string;
+}
+
+export interface Interlocutor {
+  otroId: string;
+  /** Hay un bloqueo entre las partes, de cualquiera de los dos lados. */
+  bloqueada: boolean;
+}
+
 export interface RepositorioMensajes {
   /**
    * Guarda un mensaje con la siguiente secuencia de la conversación. Bloquea la conversación para
@@ -49,4 +64,16 @@ export interface RepositorioMensajes {
     rol: 'empresa' | 'talento',
     consulta: mensajeria.ConsultaConversaciones,
   ): Promise<mensajeria.PaginaConversaciones>;
+  /** Avanza la marca de lectura sin pasar del último mensaje; `null` si no participa. */
+  marcarLeido(
+    usuarioId: string,
+    conversacionId: string,
+    secuencia: number,
+  ): Promise<ResultadoLeido | null>;
+  /** El otro participante y si hay bloqueo; `null` si no participa. */
+  interlocutor(usuarioId: string, conversacionId: string): Promise<Interlocutor | null>;
+  /** Idempotente. `no_encontrado` si el usuario a bloquear no existe. */
+  bloquear(bloqueadorId: string, bloqueadoId: string): Promise<'ok' | 'no_encontrado'>;
+  /** Idempotente: desbloquear a quien no estaba bloqueado no hace nada. */
+  desbloquear(bloqueadorId: string, bloqueadoId: string): Promise<void>;
 }

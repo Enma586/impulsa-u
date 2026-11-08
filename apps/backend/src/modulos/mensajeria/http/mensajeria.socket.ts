@@ -8,7 +8,12 @@ import type {
   RegistroManejadoresSocket,
   SocketCliente,
 } from '../../../compartido/infraestructura/tiempo-real/tipos.js';
-import { EnviarMensaje, SincronizarConversacion } from '../aplicacion/mensajes.js';
+import {
+  EnviarMensaje,
+  MarcarLeido,
+  NotificarEscribiendo,
+  SincronizarConversacion,
+} from '../aplicacion/mensajes.js';
 import type { ActorMensajeria, ErrorMensajeriaCaso } from '../dominio/errores.js';
 
 /** El `ack` lo manda el cliente: puede faltar o no ser una función, así que se valida. */
@@ -76,6 +81,8 @@ export class ManejadorMensajeriaSocket implements ManejadorSocket, OnModuleInit 
     @Inject(REGISTRO_MANEJADORES_SOCKET) private readonly sockets: RegistroManejadoresSocket,
     @Inject(EnviarMensaje) private readonly enviar: EnviarMensaje,
     @Inject(SincronizarConversacion) private readonly sincronizar: SincronizarConversacion,
+    @Inject(MarcarLeido) private readonly leer: MarcarLeido,
+    @Inject(NotificarEscribiendo) private readonly escribiendo: NotificarEscribiendo,
   ) {}
 
   onModuleInit(): void {
@@ -89,6 +96,39 @@ export class ManejadorMensajeriaSocket implements ManejadorSocket, OnModuleInit 
     socket.on('conversation:sync', (datos: unknown, ack: unknown) => {
       void this.alSincronizar(socket, datos, ack);
     });
+    socket.on('message:read', (datos: unknown) => {
+      void this.alLeer(socket, datos);
+    });
+    socket.on('typing:start', (datos: unknown) => {
+      void this.alEscribir(socket, datos, true);
+    });
+    socket.on('typing:stop', (datos: unknown) => {
+      void this.alEscribir(socket, datos, false);
+    });
+  }
+
+  /** Sin `ack`: si el aviso es inválido o no corresponde, simplemente no pasa nada. */
+  private async alLeer(socket: SocketCliente, datos: unknown): Promise<void> {
+    const entrada = mensajeria.EventoMarcarLeido.safeParse(datos);
+    const actor = actorDe(socket);
+    if (!entrada.success || !actor) return;
+    try {
+      const { conversacionId, ...lectura } = entrada.data;
+      await this.leer.ejecutar(actor, conversacionId, lectura);
+    } catch (error) {
+      this.registro.error('Falló message:read', error instanceof Error ? error.stack : undefined);
+    }
+  }
+
+  private async alEscribir(socket: SocketCliente, datos: unknown, activo: boolean): Promise<void> {
+    const entrada = mensajeria.EventoEscribiendo.safeParse(datos);
+    const actor = actorDe(socket);
+    if (!entrada.success || !actor) return;
+    try {
+      await this.escribiendo.ejecutar(actor, entrada.data.conversacionId, activo);
+    } catch (error) {
+      this.registro.error('Falló typing', error instanceof Error ? error.stack : undefined);
+    }
   }
 
   private responder(ack: unknown, resultado: unknown): void {

@@ -2,8 +2,12 @@ import { Module } from '@nestjs/common';
 import type { BaseDeDatos, ConexionBaseDeDatos } from '@impulsau/db';
 import { BASE_DATOS } from '../../compartido/infraestructura/conexion-base-datos.module.js';
 import {
+  BloquearUsuario,
+  DesbloquearUsuario,
   EnviarMensaje,
   ListarConversaciones,
+  MarcarLeido,
+  NotificarEscribiendo,
   ObtenerHistorial,
   SincronizarConversacion,
 } from './aplicacion/mensajes.js';
@@ -19,6 +23,10 @@ import { REPOSITORIO_MENSAJES } from './puertos/puertos.js';
     ObtenerHistorial,
     SincronizarConversacion,
     ListarConversaciones,
+    MarcarLeido,
+    NotificarEscribiendo,
+    BloquearUsuario,
+    DesbloquearUsuario,
     ManejadorMensajeriaSocket,
     {
       provide: REPOSITORIO_MENSAJES,
